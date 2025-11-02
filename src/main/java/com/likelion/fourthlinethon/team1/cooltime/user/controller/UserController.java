@@ -2,6 +2,8 @@ package com.likelion.fourthlinethon.team1.cooltime.user.controller;
 
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.SignUpRequest;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.UserResponse;
+import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
+import com.likelion.fourthlinethon.team1.cooltime.user.exception.UserErrorCode;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.PasswordCheckRequest;
 import com.likelion.fourthlinethon.team1.cooltime.user.service.UserService;
 import com.likelion.fourthlinethon.team1.cooltime.global.response.BaseResponse;
@@ -91,30 +93,15 @@ public class UserController {
     /**
      * 🧩 비밀번호 유효성 검사 API
      */
-    @Operation(
-            summary = "비밀번호 유효성 검사 API",
-            description = "비밀번호가 8~20자이며, 영문·숫자·특수문자 2종 이상 조합인지 확인합니다.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "유효성 검증 성공 또는 실패 메시지 반환")
-            }
-    )
+    @Operation(summary = "비밀번호 유효성 검사", description = "비밀번호가 8~20자, 영문·숫자·특수문자 2종 이상 조합인지 확인합니다.")
     @PostMapping("/check-password")
-    public ResponseEntity<BaseResponse<String>> checkPassword(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "검사할 비밀번호를 JSON 형식으로 전달합니다.",
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = PasswordCheckRequest.class))
-            )
-            @RequestBody PasswordCheckRequest request) {
-
+    public ResponseEntity<BaseResponse<String>> checkPassword(@RequestBody PasswordCheckRequest request) {
         String password = request.getPassword();
 
-        // ✅ 정규식: 영문 + 숫자 + 특수문자 2종 이상, 8~20자
         String passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,20}$";
 
         if (!password.matches(passwordRegex)) {
-            return ResponseEntity.badRequest()
-                    .body(BaseResponse.error("비밀번호는 8~20자, 영문·숫자·특수문자 2종 이상 조합해야 합니다."));
+            throw new CustomException(UserErrorCode.INVALID_PASSWORD_FORMAT);
         }
 
         return ResponseEntity.ok(BaseResponse.success("사용 가능한 비밀번호입니다.", null));
