@@ -1,6 +1,7 @@
-package com.likelion.fourthlinethon.team1.cooltime.global.security;
+package com.likelion.fourthlinethon.team1.cooltime.global.jwt;
 
-import com.likelion.fourthlinethon.team1.cooltime.global.jwt.JwtProvider;
+import com.likelion.fourthlinethon.team1.cooltime.auth.exception.AuthErrorCode;
+import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,63 +11,59 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 /**
- * JwtAuthenticationFilter는 모든 요청 전에 작동하면서
- * JWT가 있는지 → 유효한지 → 사용자 정보를 추출할 수 있는지 확인한 뒤
- * Spring Security의 인증 객체(Authentication) 를 만들어 저장합니다.
+ * ✅ JWT 인증 필터
+ * - 요청 헤더에서 JWT 토큰 추출
+ * - 토큰 유효성 검증
+ * - 유효하면 Spring Security 인증 컨텍스트에 등록
  */
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private static final String AUTHORIZATION_HEADER = "Authorization";
-  private static final String BEARER_PREFIX = "Bearer ";
-
   private final JwtProvider jwtProvider;
-  private final UserDetailsService userDetailsService;
 
   @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
-    try {
-      String token = resolveToken(request);
+  protected void doFilterInternal(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  FilterChain filterChain)
+          throws ServletException, IOException {
 
+    String token = resolveToken(request);
+
+    try {
       if (token != null && jwtProvider.validateToken(token)) {
-//        String socialId = jwtProvider.extractSocialId(token); //고유 식별자(socialId)를 subject에 넣음
-        String email = jwtProvider.extractEmail(token); // 이메일로 추출
-        log.info("✅ [JWT 필터] JWT에서 추출한 이메일: {}", email);  // ✅ 추가
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String username = jwtProvider.extractEmail(token); // subject(email) 추출
+        log.debug("✅ JWT 인증 성공: {}", username);
 
         UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+                new UsernamePasswordAuthenticationToken(username, null, null);
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-        log.debug("SecurityContext에 '{}' 인증 정보를 저장했습니다.", email);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
       }
-    } catch (JwtException | IllegalArgumentException e) {
-      log.error("JWT 검증 실패 : {}", e.getMessage());
-      SecurityContextHolder.clearContext();
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
-      return;
+    } catch (JwtException e) {
+      throw new CustomException(AuthErrorCode.JWT_TOKEN_INVALID);
     }
+
     filterChain.doFilter(request, response);
   }
 
+  /**
+   * Authorization 헤더에서 토큰 추출
+   */
   private String resolveToken(HttpServletRequest request) {
-    String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-    log.debug("Authorization Header : {}", bearerToken);
-    if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
-      return bearerToken.substring(BEARER_PREFIX.length());
+    String bearerToken = request.getHeader("Authorization");
+    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+      return bearerToken.substring(7);
     }
     return null;
   }
