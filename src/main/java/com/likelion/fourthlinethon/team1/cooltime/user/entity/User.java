@@ -17,23 +17,30 @@ public class User extends BaseTimeEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name="nickname", nullable = false)
-  private String nickname;
-
-  @Column(name = "username", nullable = false, unique = true)
+  // 4~12자 영문/숫자 조합 → DTO에서 정규식 검증 / DB에서는 길이 제약
+  @Column(name = "username", nullable = false, unique = true, length = 12)
   private String username;
 
+  // 8~20자 비밀번호 / BCrypt 해시를 감안해 60자로 저장
   @JsonIgnore
-  @Column(name = "password", nullable = false)
+  @Column(name = "password", nullable = false, length = 60)
   private String password;
+
+  // 닉네임: 한글 12자 이내 (UTF-8 3바이트 기준 → length=36)
+  @Column(name = "nickname", nullable = false, length = 36)
+  private String nickname;
+
+  // 미룸유형
+  @Enumerated(EnumType.STRING)
+  @Column(name = "mytype", nullable = true)
+  private MyType mytype;
 
   @JsonIgnore
   @Column(name = "refresh_token")
   private String refreshToken;
 
-  @Column(name = "role", nullable = false)
   @Enumerated(EnumType.STRING)
+  @Column(name = "role", nullable = false)
   @Builder.Default
   private Role role = Role.User;
-
 }
