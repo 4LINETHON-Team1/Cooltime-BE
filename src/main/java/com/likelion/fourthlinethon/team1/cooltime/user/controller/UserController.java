@@ -3,6 +3,7 @@ package com.likelion.fourthlinethon.team1.cooltime.user.controller;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.SignUpRequest;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.UserResponse;
 import com.likelion.fourthlinethon.team1.cooltime.user.service.UserService;
+import com.likelion.fourthlinethon.team1.cooltime.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -44,39 +45,46 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 🧩 아이디 중복 확인 API
-     */
-    @Operation(
-            summary = "아이디 중복 확인 API",
-            description = "회원가입 전, 입력한 아이디가 이미 사용 중인지 확인합니다.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "true = 이미 존재 / false = 사용 가능")
-            }
-    )
+    // 아이디 중복 확인 API
+    @Operation(summary = "아이디 중복 확인 API", description = "아이디 형식 및 중복 여부를 확인합니다.")
     @GetMapping("/check-username")
-    public ResponseEntity<Boolean> checkUsername(
-            @Parameter(description = "중복 확인할 아이디", example = "user1234")
+    public ResponseEntity<BaseResponse<String>> checkUsername(
+            @Parameter(description = "확인할 아이디", example = "user1234")
             @RequestParam String username) {
+
+        // 정규식 검증 (4~12자 영문+숫자)
+        if (!username.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,12}$")) {
+            return ResponseEntity.badRequest()
+                    .body(BaseResponse.error("아이디는 4~12자의 영문과 숫자 조합이어야 합니다."));
+        }
+
         boolean exists = userService.checkUsername(username);
-        return ResponseEntity.ok(exists);
+        if (exists) {
+            return ResponseEntity.ok(BaseResponse.error(409, "이미 사용 중인 아이디입니다."));
+        }
+
+        return ResponseEntity.ok(BaseResponse.success("사용 가능한 아이디입니다.", null));
     }
 
-    /**
-     * 🧩 닉네임 중복 확인 API
-     */
-    @Operation(
-            summary = "닉네임 중복 확인 API",
-            description = "회원가입 전, 입력한 닉네임이 이미 사용 중인지 확인합니다.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "true = 이미 존재 / false = 사용 가능")
-            }
-    )
+    // 닉네임 중복 확인 API
+    @Operation(summary = "닉네임 중복 확인 API", description = "닉네임 형식 및 중복 여부를 확인합니다.")
     @GetMapping("/check-nickname")
-    public ResponseEntity<Boolean> checkNickname(
-            @Parameter(description = "중복 확인할 닉네임", example = "민정")
+    public ResponseEntity<BaseResponse<String>> checkNickname(
+            @Parameter(description = "확인할 닉네임", example = "민정")
             @RequestParam String nickname) {
+
+        // 정규식 검증 (한글만, 1~12자)
+        if (!nickname.matches("^[가-힣]{1,12}$")) {
+            return ResponseEntity.badRequest()
+                    .body(BaseResponse.error("닉네임은 한글만 사용 가능하며, 1~12자 이내여야 합니다."));
+        }
+
         boolean exists = userService.checkNickname(nickname);
-        return ResponseEntity.ok(exists);
+        if (exists) {
+            return ResponseEntity.ok(BaseResponse.error(409, "이미 사용 중인 닉네임입니다."));
+        }
+
+        return ResponseEntity.ok(BaseResponse.success("사용 가능한 닉네임입니다.", null));
     }
+
 }

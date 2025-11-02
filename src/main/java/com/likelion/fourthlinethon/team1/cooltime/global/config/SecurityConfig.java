@@ -49,7 +49,8 @@ public class SecurityConfig {
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
                     // 인증 없이 허용할 경로들
-
+                    .requestMatchers("/api/auth/sign-up", "/api/auth/check-username", "/api/auth/check-nickname")
+                    .permitAll()
                     // 그 외 모든 요청은 모두 인증 필요
                     .anyRequest()
                     .authenticated())
