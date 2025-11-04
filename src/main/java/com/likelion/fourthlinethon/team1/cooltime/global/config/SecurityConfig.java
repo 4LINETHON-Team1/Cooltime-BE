@@ -1,6 +1,6 @@
 package com.likelion.fourthlinethon.team1.cooltime.global.config;
 
-import com.likelion.fourthlinethon.team1.cooltime.global.jwt.JwtAuthenticationFilter;
+import com.likelion.fourthlinethon.team1.cooltime.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +49,7 @@ public class SecurityConfig {
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
                     // 인증 없이 허용할 경로들
-                    .requestMatchers("/api/auth/sign-up", "/api/auth/sign-in", "/api/auth/check-password", "/api/auth/check-username", "/api/auth/check-nickname")
+                    .requestMatchers("/api/auth/sign-up", "/api/auth/refresh", "/api/auth/sign-in", "/api/auth/check-password", "/api/auth/check-username", "/api/auth/check-nickname")
                     .permitAll()
                     // 그 외 모든 요청은 모두 인증 필요
                     .anyRequest()
