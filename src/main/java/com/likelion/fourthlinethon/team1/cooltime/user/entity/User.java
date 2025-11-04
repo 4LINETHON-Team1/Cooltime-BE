@@ -43,4 +43,9 @@ public class User extends BaseTimeEntity {
   @Column(name = "role", nullable = false)
   @Builder.Default
   private Role role = Role.User;
+
+  public void updateRefreshToken(String refreshToken) {
+    this.refreshToken = refreshToken;
+  }
 }
+

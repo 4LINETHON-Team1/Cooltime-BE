@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -106,6 +107,14 @@ public class UserController {
 
         return ResponseEntity.ok(BaseResponse.success("사용 가능한 비밀번호입니다.", null));
     }
+
+    @Operation(summary = "내 정보 조회", description = "JWT 인증 후 자신의 정보를 반환합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<BaseResponse<String>> getMyInfo() {
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(BaseResponse.success("인증된 사용자: " + username, null));
+    }
+
 
 
 }
