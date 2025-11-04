@@ -1,7 +1,8 @@
-package com.likelion.fourthlinethon.team1.cooltime.global.jwt;
+package com.likelion.fourthlinethon.team1.cooltime.global.security;
 
 import com.likelion.fourthlinethon.team1.cooltime.auth.exception.AuthErrorCode;
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
+import com.likelion.fourthlinethon.team1.cooltime.global.jwt.JwtProvider;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
