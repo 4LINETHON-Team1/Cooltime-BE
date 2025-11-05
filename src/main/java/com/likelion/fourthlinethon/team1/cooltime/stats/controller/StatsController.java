@@ -21,7 +21,7 @@ public class StatsController {
     private final StatsService statsService;
 
     @Operation(summary = "총 기록 일수 조회", description = "사용자의 총 기록 일수를 조회합니다.")
-    @GetMapping("/total-record-days")
+    @GetMapping("/records/total-days")
     public ResponseEntity<BaseResponse<TotalRecordSummaryResponse>> getTotalRecordDays(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
@@ -32,4 +32,29 @@ public class StatsController {
                 )
         );
     }
+    @GetMapping("/categories/postponed/top")
+    public ResponseEntity<BaseResponse<?>> getTopCategory(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                BaseResponse.success(
+                        "최고 카테고리 조회 성공",
+                        statsService.getTopCategory(userDetails.getUser())
+                )
+        );
+    }
+
+    @GetMapping("/categories/postponed")
+    public ResponseEntity<BaseResponse<?>> getCategoryStatsAll(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                BaseResponse.success(
+                        "카테고리별 미룸 횟수 통계 조회 성공",
+                        statsService.getCategoryStatsAll(userDetails.getUser())
+                )
+        );
+    }
+
+
 }
