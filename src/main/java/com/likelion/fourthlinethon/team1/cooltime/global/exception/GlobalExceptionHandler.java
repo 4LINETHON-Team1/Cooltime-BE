@@ -69,6 +69,13 @@ public class GlobalExceptionHandler {
         .body(BaseResponse.error(400, message));
   }
 
+  // 잘못된 인자 (IllegalArgumentException)
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<BaseResponse<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+      log.warn("잘못된 인자 예외 발생: {}", ex.getMessage());
+      return ResponseEntity.badRequest()
+              .body(BaseResponse.error(400, ex.getMessage()));
+  }
 
   // 예상치 못한 예외
   @ExceptionHandler(Exception.class)
