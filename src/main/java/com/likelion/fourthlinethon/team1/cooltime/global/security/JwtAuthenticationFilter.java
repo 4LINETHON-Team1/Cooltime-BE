@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -31,6 +32,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtProvider jwtProvider;
+  private final CustomUserDetailsService userDetailsService;
 
   @Override
   protected void doFilterInternal(HttpServletRequest request,
@@ -42,11 +44,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     try {
       if (token != null && jwtProvider.validateToken(token)) {
-        String username = jwtProvider.extractEmail(token); // subject(email) 추출
-        log.debug("✅ JWT 인증 성공: {}", username);
+        String subject = jwtProvider.extractEmail(token); // 토큰 subject (username 또는 email)
+        log.debug("✅ JWT 인증 성공: {}", subject);
+
+        // UserDetails 로드 (subject를 username으로 간주)
+        UserDetails userDetails = userDetailsService.loadUserByUsername(subject);
 
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(username, null, null);
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
