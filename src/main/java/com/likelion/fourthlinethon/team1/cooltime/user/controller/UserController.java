@@ -1,5 +1,6 @@
 package com.likelion.fourthlinethon.team1.cooltime.user.controller;
 
+import com.likelion.fourthlinethon.team1.cooltime.global.security.CustomUserDetails;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.SignUpRequest;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.UserResponse;
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -110,8 +112,10 @@ public class UserController {
 
     @Operation(summary = "내 정보 조회", description = "JWT 인증 후 자신의 정보를 반환합니다.")
     @GetMapping("/me")
-    public ResponseEntity<BaseResponse<String>> getMyInfo() {
-        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public ResponseEntity<BaseResponse<String>> getMyInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+            ) {
+        String username = userDetails.getUsername();
         return ResponseEntity.ok(BaseResponse.success("인증된 사용자: " + username, null));
     }
 
