@@ -2,6 +2,8 @@ package com.likelion.fourthlinethon.team1.cooltime.stats.controller;
 
 import com.likelion.fourthlinethon.team1.cooltime.global.response.BaseResponse;
 import com.likelion.fourthlinethon.team1.cooltime.global.security.CustomUserDetails;
+import com.likelion.fourthlinethon.team1.cooltime.stats.dto.response.CategoryStatsAllResponse;
+import com.likelion.fourthlinethon.team1.cooltime.stats.dto.response.TopCategoryResponse;
 import com.likelion.fourthlinethon.team1.cooltime.stats.dto.response.TotalRecordSummaryResponse;
 import com.likelion.fourthlinethon.team1.cooltime.stats.service.StatsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +35,7 @@ public class StatsController {
         );
     }
     @GetMapping("/categories/postponed/top")
-    public ResponseEntity<BaseResponse<?>> getTopCategory(
+    public ResponseEntity<BaseResponse<TopCategoryResponse>> getTopCategory(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(
@@ -45,7 +47,7 @@ public class StatsController {
     }
 
     @GetMapping("/categories/postponed")
-    public ResponseEntity<BaseResponse<?>> getCategoryStatsAll(
+    public ResponseEntity<BaseResponse<CategoryStatsAllResponse>> getCategoryStatsAll(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(
@@ -55,6 +57,8 @@ public class StatsController {
                 )
         );
     }
+
+
 
 
 }
