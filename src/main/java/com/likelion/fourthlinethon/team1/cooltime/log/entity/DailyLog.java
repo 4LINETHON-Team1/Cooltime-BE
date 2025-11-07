@@ -34,5 +34,11 @@ public class DailyLog extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private MyType type;
+
+    public void update(Boolean isPostponed, MyType type) {
+        this.isPostponed = isPostponed;
+        this.type = type;
+    }
+
 }
 

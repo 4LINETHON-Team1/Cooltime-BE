@@ -9,9 +9,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Repository
 public interface DailyLogRepository extends JpaRepository<DailyLog, Long> {
+    Optional<DailyLog> findByUserAndDate(User user, LocalDate date);
+    boolean existsByUserAndDate(User user, LocalDate date);
 
     // 특정 유저의 총 기록일수(레코드 수)를 반환
     long countByUser(User user);

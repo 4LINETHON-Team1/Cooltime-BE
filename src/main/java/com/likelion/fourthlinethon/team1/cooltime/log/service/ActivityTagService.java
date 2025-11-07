@@ -74,7 +74,7 @@ public class ActivityTagService {
         }
 
         if (activity.getIsDefault()) {
-            throw new CustomException(DailyLogErrorCode.ACTIVITY_ALREADY_EXISTS);
+            throw new CustomException(DailyLogErrorCode.ACTIVITY_OR_REASON_ALREADY_EXISTS);
         }
 
         activity.setIsActive(false);

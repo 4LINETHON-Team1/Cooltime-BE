@@ -9,11 +9,11 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum DailyLogErrorCode implements BaseErrorCode {
 
-    ACTIVITY_OR_REASON_ALREADY_EXISTS("ACTIVITY_400", "이미 해당 활동/이유가 활성화 되어있습니다.", HttpStatus.BAD_REQUEST),
-    LOG_NOT_FOUND("LOG_404", "해당 일일 기록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    ACTIVITY_OR_REASON_ALREADY_EXISTS("ACTIVITY_400", "이미 활동/이유가 활성화 되어있습니다.", HttpStatus.BAD_REQUEST),
+    LOG_NOT_FOUND("LOG_404", "오늘 기록이 아직 없습니다.", HttpStatus.NOT_FOUND),
     ACTIVITY_NOT_FOUND("ACTIVITY_404", "해당 활동을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     REASON_NOT_FOUND("REASON_404", "해당 이유를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    INVALID_DATE("LOG_400", "오늘 날짜에만 수정 및 등록이 가능합니다.", HttpStatus.BAD_REQUEST);
+    INVALID_DATE("LOG_400", "중복 기록은 불가합니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

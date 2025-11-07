@@ -74,7 +74,7 @@ public class ReasonTagService {
         }
 
         if (reason.getIsDefault()) {
-            throw new CustomException(DailyLogErrorCode.ACTIVITY_ALREADY_EXISTS);
+            throw new CustomException(DailyLogErrorCode.ACTIVITY_OR_REASON_ALREADY_EXISTS);
         }
 
         reason.setIsActive(false);
