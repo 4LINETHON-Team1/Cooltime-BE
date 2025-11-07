@@ -21,6 +21,36 @@ public class StatsService {
     private final DailyLogRepository dailyLogRepository;
     private final LogActivityRepository logActivityRepository;
 
+    public DashboardOverviewResponse getDashboardOverview(User user) {
+        log.info("[서비스] 대시보드 개요 조회 시도 - userId: {}", user.getId());
+
+        // 1) 총 미룸 기록 일수 요약 조회
+        TotalRecordSummaryResponse totalRecordSummary = getTotalRecordSummary(user);
+
+        // 2) 최고 카테고리 조회
+        TopCategoryResponse topCategory = getTopCategory(user);
+
+        // 3) 전체 미룸 비율 집계 조회
+        PostponeRatioTotalResponse postponeRatioTotal = getPostponeRatioTotal(user);
+        int postponedPercent = postponeRatioTotal.getTotal().getPostponedPercent();
+
+        // 4) AI 리포트 사용 가능 여부 조회 (임시)
+        boolean aiReportAvailable = isAiReportAvailable(user);
+
+        // 5) 응답 생성 및 반환
+        return DashboardOverviewResponse.from(
+                totalRecordSummary,
+                topCategory,
+                postponedPercent,
+                aiReportAvailable
+        );
+    }
+
+    private boolean isAiReportAvailable(User user) {
+        // AI 리포트 사용 가능 여부 로직 구현 (예: 프리미엄 사용자 여부 등)
+        return false; // 기본값으로 false 반환
+    }
+
     public TotalRecordSummaryResponse getTotalRecordSummary(User user) {
         log.info("[서비스] 총 미룸 기록 일수 조회 시도 - userId: {}", user.getId());
         // 1) 사용자 가입일 조회
@@ -89,6 +119,8 @@ public class StatsService {
                 startDate,
                 endDate
         );
+        log.info(("[서비스] 전체 미룸 비율 집계 조회 완료 - userId: {}, counts: {}"), user.getId(), counts);
+        if (counts.getTotal()==0L) return PostponeRatioTotalResponse.from(PostponedRatioSummary.empty());
         PostponedRatioSummary summary = PostponedRatioSummary.from(counts);
 
         return PostponeRatioTotalResponse.from(summary);

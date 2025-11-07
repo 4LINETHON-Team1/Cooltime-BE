@@ -22,6 +22,6 @@ public class TopCategoryResponse {
 
     /** 미룸 기록 없음 */
     public static TopCategoryResponse empty() {
-        return new TopCategoryResponse("");
+        return new TopCategoryResponse(null);
     }
 }
