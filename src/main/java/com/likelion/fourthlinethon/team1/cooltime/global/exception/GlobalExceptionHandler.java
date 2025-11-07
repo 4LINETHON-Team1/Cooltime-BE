@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -76,6 +77,14 @@ public class GlobalExceptionHandler {
       return ResponseEntity.badRequest()
               .body(BaseResponse.error(400, ex.getMessage()));
   }
+
+    // 잘못된 인자 (IllegalArgumentException)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<BaseResponse<Object>> handleMethodArgumentTypeMismatchException(Exception ex) {
+        log.warn("잘못된 인자 예외 발생: {}", ex.getMessage());
+        return ResponseEntity.badRequest()
+                .body(BaseResponse.error(400, "잘못된 요청 인자입니다."));
+    }
 
   // 예상치 못한 예외
   @ExceptionHandler(Exception.class)
