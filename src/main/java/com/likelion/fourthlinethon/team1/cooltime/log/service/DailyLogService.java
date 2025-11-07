@@ -1,8 +1,11 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.service;
 
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogCalendarResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogDetailResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogRequest;
 import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.MonthlyLogSummaryResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.ActivityTag;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.DailyLog;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.LogActivity;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -142,4 +146,48 @@ public class DailyLogService {
         dailyLogRepository.save(existingLog);
         return DailyLogResponse.fromEntity(existingLog);
     }
+
+    // 미룸 기록 조회
+    @Transactional(readOnly = true)
+    public DailyLogDetailResponse getDailyLog(User user, LocalDate date) {
+        DailyLog log = dailyLogRepository.findByUserAndDate(user, date)
+                .orElseThrow(() -> new CustomException(DailyLogErrorCode.LOG_NOT_FOUND));
+
+        List<String> activities = logActivityRepository.findByLog(log)
+                .stream()
+                .map(la -> la.getActivity().getName())
+                .toList();
+
+        List<String> reasons = logReasonRepository.findByLog(log)
+                .stream()
+                .map(lr -> lr.getReason().getName())
+                .toList();
+
+        return DailyLogDetailResponse.fromEntity(log, activities, reasons);
+    }
+
+    @Transactional(readOnly = true)
+    public MonthlyLogSummaryResponse getMonthlyLogs(User user, int year, int month) {
+        List<DailyLog> logs = dailyLogRepository.findByUserAndMonth(user, year, month);
+
+        long postponedCount = logs.stream().filter(DailyLog::isPostponed).count();
+        long completedCount = logs.size() - postponedCount;
+
+        List<DailyLogCalendarResponse> logResponses = logs.stream()
+                .map(DailyLogCalendarResponse::from)
+                .toList();
+
+        MonthlyLogSummaryResponse.Summary summary = MonthlyLogSummaryResponse.Summary.builder()
+                .postponedCount(postponedCount)
+                .completedCount(completedCount)
+                .build();
+
+        return MonthlyLogSummaryResponse.builder()
+                .summary(summary)
+                .logs(logResponses)
+                .build();
+    }
+
+
+
 }

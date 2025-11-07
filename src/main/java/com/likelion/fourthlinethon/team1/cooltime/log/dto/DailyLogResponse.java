@@ -27,7 +27,7 @@ public class DailyLogResponse {
         return DailyLogResponse.builder()
                 .id(log.getId())
                 .date(log.getDate())
-                .isPostponed(log.getIsPostponed())
+                .isPostponed(log.isPostponed())
                 .myType(log.getType().toString())
                 .build();
     }

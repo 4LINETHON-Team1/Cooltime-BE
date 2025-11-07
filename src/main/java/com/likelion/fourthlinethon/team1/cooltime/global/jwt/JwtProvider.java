@@ -34,15 +34,14 @@ public class JwtProvider {
     this.refreshTokenExpireTime = refreshTokenExpireTime;
   }
 
-  public String createAccessToken(String email) {
+  public String createAccessToken(String username) {
     Date now = new Date();
     return Jwts.builder()
-        .setSubject(email)
-        .setId(String.valueOf(email))
-        .setIssuedAt(now)
-        .setExpiration(new Date(now.getTime() + accessTokenExpireTime))
-        .signWith(key, SignatureAlgorithm.HS256)
-        .compact();
+            .setSubject(username)
+            .setIssuedAt(now)
+            .setExpiration(new Date(now.getTime() + accessTokenExpireTime))
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact();
   }
 
   public long getExpiration(String accessToken) {
@@ -85,7 +84,7 @@ public class JwtProvider {
     }
   }
 
-  public String extractEmail(String token) {
+  public String extractUsername(String token) {
     return parseClaims(token).getSubject(); // ✅ subject에서 이메일 추출
   }
 

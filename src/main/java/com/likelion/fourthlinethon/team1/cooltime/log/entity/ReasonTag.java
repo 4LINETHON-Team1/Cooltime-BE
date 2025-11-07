@@ -21,7 +21,6 @@ public class ReasonTag extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 16자 제한
     @Column(name = "name", nullable = false, length = 48)
     private String name;
 
@@ -35,5 +34,9 @@ public class ReasonTag extends BaseTimeEntity {
 
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public void setIsDefault(boolean isDefault) {
+        this.isDefault = isDefault;
     }
 }

@@ -14,6 +14,8 @@ import java.util.Optional;
 @Repository
 public interface LogActivityRepository extends JpaRepository<LogActivity, Long> {
     void deleteAllByLog(DailyLog log);
+    List<LogActivity> findByLog(DailyLog log);
+    long countByLog(DailyLog log);
 
     @Query(value = """
       SELECT at.id AS activityId,

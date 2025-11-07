@@ -10,5 +10,8 @@ import java.util.List;
 @Repository
 public interface LogReasonRepository extends JpaRepository<LogReason, Long> {
     void deleteAllByLog(DailyLog log);
+    List<LogReason> findByLog(DailyLog log);
+    long countByLog(DailyLog log);
+
 }
 
