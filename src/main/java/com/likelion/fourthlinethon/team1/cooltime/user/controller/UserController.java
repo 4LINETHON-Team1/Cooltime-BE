@@ -99,13 +99,30 @@ public class UserController {
     public ResponseEntity<BaseResponse<String>> checkPassword(@RequestBody PasswordCheckRequest request) {
         String password = request.getPassword();
 
-        String passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,20}$";
-
-        if (!password.matches(passwordRegex)) {
+        if (!isValidPassword(password)) {
             throw new CustomException(UserErrorCode.INVALID_PASSWORD_FORMAT);
         }
 
         return ResponseEntity.ok(BaseResponse.success("사용 가능한 비밀번호입니다.", null));
+    }
+
+    /**
+     * ✅ 비밀번호 2종 이상 조합(영문·숫자·특수문자) 검증 메서드
+     */
+    private boolean isValidPassword(String password) {
+        if (password == null) return false;
+        if (password.length() < 8 || password.length() > 20) return false;
+
+        boolean hasLetter = password.matches(".*[A-Za-z].*");
+        boolean hasDigit = password.matches(".*\\d.*");
+        boolean hasSpecial = password.matches(".*[!@#$%^&*()_+=-].*");
+
+        int count = 0;
+        if (hasLetter) count++;
+        if (hasDigit) count++;
+        if (hasSpecial) count++;
+
+        return count >= 2; // ✅ 최소 2종 이상 조합 허용
     }
 
     @Operation(summary = "내 정보 조회", description = "JWT 인증 후 자신의 정보를 반환합니다.")
