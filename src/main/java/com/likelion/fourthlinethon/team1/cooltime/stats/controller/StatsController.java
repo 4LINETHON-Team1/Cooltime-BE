@@ -29,6 +29,19 @@ public class StatsController {
     private final StatsService statsService;
     private final DefaultPeriodResolver periodResolver;
 
+    @Operation(summary = "기본 통계 개요 조회", description = "사용자의 기본 통계 개요를 조회합니다.")
+    @GetMapping("/overview")
+    public ResponseEntity<BaseResponse<DashboardOverviewResponse>> getDashboardOverview(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                BaseResponse.success(
+                        "기본 통계 개요 조회 성공",
+                        statsService.getDashboardOverview(userDetails.getUser())
+                )
+        );
+    }
+
     @Operation(summary = "총 기록 일수 조회", description = "사용자의 총 기록 일수를 조회합니다.")
     @GetMapping("/records/total-days")
     public ResponseEntity<BaseResponse<TotalRecordSummaryResponse>> getTotalRecordDays(

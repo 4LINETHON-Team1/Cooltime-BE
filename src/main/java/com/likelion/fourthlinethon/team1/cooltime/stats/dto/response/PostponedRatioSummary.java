@@ -35,4 +35,8 @@ public class PostponedRatioSummary {
                 (int)postponeRatioCounts.getDone()
         );
     }
+
+    public static PostponedRatioSummary empty() {
+        return of(0, 0, 0);
+    }
 }
