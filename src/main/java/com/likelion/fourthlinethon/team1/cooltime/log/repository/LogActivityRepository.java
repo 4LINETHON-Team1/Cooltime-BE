@@ -19,9 +19,9 @@ public interface LogActivityRepository extends JpaRepository<LogActivity, Long> 
              COUNT(*) AS cnt
       FROM logs_activities la
       JOIN daily_logs dl ON dl.id = la.log_id
-      JOIN activities_tags at ON at.id = la.activity_id
+      JOIN activity_tags at ON at.id = la.activity_id
       WHERE dl.user_id = :userId
-        AND dl.is_postponed = TRUE
+        AND dl.isPostponed = TRUE
       GROUP BY at.id, at.name
       ORDER BY cnt DESC, at.name ASC, at.id ASC
       LIMIT 1
@@ -34,9 +34,9 @@ public interface LogActivityRepository extends JpaRepository<LogActivity, Long> 
                COUNT(*) AS cnt
         FROM logs_activities la
         JOIN daily_logs dl ON dl.id = la.log_id
-        JOIN activities_tags at ON at.id = la.activity_id
+        JOIN activity_tags at ON at.id = la.activity_id
         WHERE dl.user_id = :userId
-          AND dl.is_postponed = TRUE
+          AND dl.isPostponed = TRUE
         GROUP BY at.id, at.name
         ORDER BY cnt DESC, at.name ASC, at.id ASC
         """, nativeQuery = true)
