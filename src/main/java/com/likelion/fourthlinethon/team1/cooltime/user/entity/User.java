@@ -5,6 +5,8 @@ import com.likelion.fourthlinethon.team1.cooltime.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
@@ -44,8 +46,21 @@ public class User extends BaseTimeEntity {
   @Builder.Default
   private Role role = Role.User;
 
+  @Column(name = "has_tested", nullable = false)
+  @Builder.Default
+  private boolean hasTested = false;
+
+  @Column(name = "last_tested_at")
+  private LocalDateTime lastTestedAt;
+
   public void updateRefreshToken(String refreshToken) {
     this.refreshToken = refreshToken;
+  }
+
+  public void updateMyType(MyType type) {
+    this.mytype = type;
+    this.hasTested = true;
+    this.lastTestedAt = LocalDateTime.now();
   }
 }
 
