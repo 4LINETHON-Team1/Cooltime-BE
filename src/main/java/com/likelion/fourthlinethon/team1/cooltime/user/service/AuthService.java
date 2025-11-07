@@ -23,6 +23,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
+    /**
+     * ✅ 로그인
+     */
     @Transactional
     public LoginResponse signIn(LoginRequest request) {
         log.info("[로그인 시도] username = {}", request.getUsername());
@@ -37,18 +40,14 @@ public class AuthService {
         String accessToken = jwtProvider.createAccessToken(user.getUsername());
         String refreshToken = jwtProvider.createRefreshToken(user.getUsername(), String.valueOf(user.getId()));
 
-        user.updateRefreshToken(refreshToken); // refresh token 저장
+        user.updateRefreshToken(refreshToken);
         userRepository.save(user);
 
         log.info("[로그인 성공] username = {}", user.getUsername());
 
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .nickname(user.getNickname())
-                .username(user.getUsername())
-                .build();
+        return LoginResponse.from(user, accessToken, refreshToken);
     }
+
     /**
      * ✅ 토큰 재발급
      */
@@ -56,33 +55,24 @@ public class AuthService {
     public LoginResponse refreshAccessToken(String refreshToken) {
         log.info("[토큰 재발급 요청] refreshToken = {}", refreshToken);
 
-        // RefreshToken 유효성 검증
         if (!jwtProvider.validateToken(refreshToken)) {
             throw new CustomException(AuthErrorCode.JWT_TOKEN_INVALID);
         }
 
-        // DB에서 사용자 조회
         User user = userRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new CustomException(AuthErrorCode.JWT_TOKEN_INVALID));
 
-        // 새 AccessToken 발급
         String newAccessToken = jwtProvider.createAccessToken(user.getUsername());
 
-        // RefreshToken이 곧 만료될 경우 새로 발급 (optional)
         long remain = jwtProvider.getExpiration(refreshToken);
-        if (remain < 1000 * 60 * 60 * 24) { // 남은 시간이 1일 이하라면 새로 발급
+        if (remain < 1000 * 60 * 60 * 24) { // 남은 유효기간이 1일 이하일 경우
             String newRefreshToken = jwtProvider.createRefreshToken(user.getUsername(), String.valueOf(user.getId()));
             user.updateRefreshToken(newRefreshToken);
             userRepository.save(user);
             refreshToken = newRefreshToken;
         }
 
-        return LoginResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
-                .nickname(user.getNickname())
-                .username(user.getUsername())
-                .build();
+        return LoginResponse.from(user, newAccessToken, refreshToken);
     }
 
     /**
@@ -95,7 +85,7 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
-        user.updateRefreshToken(null); // refresh_token 제거
+        user.updateRefreshToken(null);
         userRepository.save(user);
 
         log.info("[로그아웃 완료] username = {}", username);

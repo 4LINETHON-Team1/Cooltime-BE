@@ -44,11 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     try {
       if (token != null && jwtProvider.validateToken(token)) {
-        String subject = jwtProvider.extractEmail(token); // 토큰 subject (username 또는 email)
-        log.debug("✅ JWT 인증 성공: {}", subject);
-
-        // UserDetails 로드 (subject를 username으로 간주)
-        UserDetails userDetails = userDetailsService.loadUserByUsername(subject);
+        String username = jwtProvider.extractUsername(token);
+        log.debug("✅ JWT 인증 성공: {}", username);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

@@ -28,11 +28,14 @@ public class DailyLog extends BaseTimeEntity {
     private LocalDate date;
 
     @Column(nullable = false)
-    private Boolean isPostponed;
+    private boolean isPostponed;
 
-    // 미룸유형
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private MyType type;
-}
 
+    public void update(Boolean isPostponed, MyType type) {
+        this.isPostponed = isPostponed;
+        this.type = type;
+    }
+}

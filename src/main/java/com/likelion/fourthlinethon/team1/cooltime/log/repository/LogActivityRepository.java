@@ -1,5 +1,6 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.repository;
 
+import com.likelion.fourthlinethon.team1.cooltime.log.entity.DailyLog;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.LogActivity;
 import com.likelion.fourthlinethon.team1.cooltime.stats.projection.ActivityStatsProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +13,9 @@ import java.util.Optional;
 
 @Repository
 public interface LogActivityRepository extends JpaRepository<LogActivity, Long> {
+    void deleteAllByLog(DailyLog log);
+    List<LogActivity> findByLog(DailyLog log);
+    long countByLog(DailyLog log);
 
     @Query(value = """
       SELECT at.id AS activityId,
