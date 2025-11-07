@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,10 +26,29 @@ public class ActivityTagService {
      */
     @Transactional
     public List<ActivityTagResponse> createActivity(User user, ActivityTagRequest request) {
-        if (activityTagRepository.existsByUserAndName(user, request.getName())) {
-            throw new CustomException(DailyLogErrorCode.ACTIVITY_ALREADY_EXISTS);
+        // 1️⃣ 기존 동일 이름의 활동 존재 여부 확인
+        Optional<ActivityTag> existingTag = activityTagRepository
+                .findAll()
+                .stream()
+                .filter(t -> t.getUser().getId().equals(user.getId()) && t.getName().equals(request.getName()))
+                .findFirst();
+
+        if (existingTag.isPresent()) {
+            ActivityTag tag = existingTag.get();
+
+            // 2️⃣ 이미 활성 상태면 예외 발생
+            if (tag.getIsActive()) {
+                throw new CustomException(DailyLogErrorCode.ACTIVITY_OR_REASON_ALREADY_EXISTS);
+            }
+
+            // 3️⃣ 비활성화 상태라면 재활성화
+            tag.setIsActive(true);
+            activityTagRepository.save(tag);
+
+            return getActiveTags(user);
         }
 
+        // 4️⃣ 존재하지 않으면 새로 생성
         ActivityTag tag = ActivityTag.builder()
                 .user(user)
                 .name(request.getName())

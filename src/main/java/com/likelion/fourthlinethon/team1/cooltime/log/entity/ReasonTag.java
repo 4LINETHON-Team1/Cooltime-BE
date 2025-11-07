@@ -32,4 +32,8 @@ public class ReasonTag extends BaseTimeEntity {
     @Column(name = "isDefault", nullable = false)
     @Builder.Default
     private Boolean isDefault = false;
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
 }
