@@ -1,5 +1,7 @@
 package com.likelion.fourthlinethon.team1.cooltime.global.config;
 
+import com.likelion.fourthlinethon.team1.cooltime.global.security.JwtAccessDeniedHandler;
+import com.likelion.fourthlinethon.team1.cooltime.global.security.JwtAuthenticationEntryPoint;
 import com.likelion.fourthlinethon.team1.cooltime.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,8 +26,10 @@ public class SecurityConfig {
 
   private final CorsConfig corsConfig;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+  private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-  @Bean
+    @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
         // CSRF 보호 기능 비활성화 (REST API에서는 필요없음)
@@ -39,6 +43,11 @@ public class SecurityConfig {
         // 세션을 생성하지 않음 (JWT 사용으로 인한 Stateless 설정)
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        // 예외 처리 핸들러 등록
+            .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                    .accessDeniedHandler(jwtAccessDeniedHandler)
+            )
         // HTTP 요청에 대한 권한 설정
         .authorizeHttpRequests(
             request ->
