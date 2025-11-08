@@ -27,13 +27,13 @@ public interface DailyLogRepository extends JpaRepository<DailyLog, Long> {
 
     // ✅ 통계용: 특정 기간의 미룸/성공 기록 수 집계
     @Query("""
-        select 
-            count(dl) as total,
-            sum(case when dl.isPostponed = true  then 1 else 0 end) as postponed,
-            sum(case when dl.isPostponed = false then 1 else 0 end) as done
-        from DailyLog dl
-        where dl.user.id = :userId
-          and dl.date between :startDate and :endDate
+            SELECT
+                count(dl) as total,
+                coalesce(sum(case when dl.isPostponed = true  then 1 else 0 end), 0) as postponed,
+                coalesce(sum(case when dl.isPostponed = false then 1 else 0 end), 0) as done
+            FROM DailyLog dl
+            WHERE dl.user.id = :userId
+                and dl.date between :startDate and :endDate
     """)
     PostponeRatioCounts getPostponeRatioCounts(
             @Param("userId") Long userId,

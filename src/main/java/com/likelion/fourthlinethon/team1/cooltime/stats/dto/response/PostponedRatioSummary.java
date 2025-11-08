@@ -31,8 +31,8 @@ public class PostponedRatioSummary {
     public static PostponedRatioSummary from(PostponeRatioCounts postponeRatioCounts) {
         return of(
                 (int)postponeRatioCounts.getTotal(),
-                (int)postponeRatioCounts.getPostponed(),
-                (int)postponeRatioCounts.getDone()
+                postponeRatioCounts.getPostponed() == 0 ? 0 : (int)postponeRatioCounts.getPostponed(),
+                postponeRatioCounts.getDone() == 0 ? 0 : (int)postponeRatioCounts.getDone()
         );
     }
 
