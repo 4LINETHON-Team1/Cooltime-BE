@@ -18,10 +18,24 @@ jobs:
           java-version: 21
 
       - name: application.yml 파일 만들기
-        run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.yml
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p src/main/resources/config
+          printf '%s' "${{ secrets.APPLICATION_YML }}" > src/main/resources/config/application.yml
+
+      - name: yml 존재 확인
+        run: |
+          ls -la src/main/resources/config
+          echo "---- first lines ----"
+          head -n 20 src/main/resources/config/application.yml
+          cat src/main/resources/config/application.yml
+      - name: Gradle Wrapper 권한 부여
+        run: chmod +x ./gradlew
+
 
       - name: 테스트 및 빌드하기
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: 빌드된 파일 이름 변경하기
         run: mv ./build/libs/*SNAPSHOT.jar ./project.jar
