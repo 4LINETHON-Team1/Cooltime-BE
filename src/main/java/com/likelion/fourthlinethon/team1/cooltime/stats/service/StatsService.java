@@ -140,9 +140,9 @@ public class StatsService {
         var currentCounts = dailyLogRepository.getPostponeRatioCounts(
                 user.getId(), clamped.getStart(), clamped.getEnd()
         );
-        PostponedRatioSummary currentSummary = (currentCounts != null)
-                ? PostponedRatioSummary.from(currentCounts)
-                : PostponedRatioSummary.of(0, 0, 0);
+        PostponedRatioSummary currentSummary = (currentCounts.getTotal() == 0)
+                ? PostponedRatioSummary.of(0, 0, 0)
+                : PostponedRatioSummary.from(currentCounts);
 
         // 3) 이전 주 기간 계산 및 조회 (가입 이전/미래인 경우 제외)
         WeekPeriod prevPeriod = (WeekPeriod) period.prev();
@@ -182,9 +182,9 @@ public class StatsService {
         var currentCounts = dailyLogRepository.getPostponeRatioCounts(
                 user.getId(), clamped.getStart(), clamped.getEnd()
         );
-        PostponedRatioSummary currentSummary = (currentCounts != null)
-                ? PostponedRatioSummary.from(currentCounts)
-                : PostponedRatioSummary.of(0, 0, 0);
+        PostponedRatioSummary currentSummary = (currentCounts.getTotal() == 0)
+                ? PostponedRatioSummary.of(0, 0, 0)
+                : PostponedRatioSummary.from(currentCounts);
 
         MonthPeriod prevPeriod = (MonthPeriod) period.prev();
         ClampedPeriod prevClamped = PeriodGuard.clamp(signup, prevPeriod, today);
@@ -229,10 +229,10 @@ public class StatsService {
             LocalDate qe = mp.getEnd().isAfter(clamped.getEnd()) ? clamped.getEnd() : mp.getEnd();
 
             var counts = dailyLogRepository.getPostponeRatioCounts(user.getId(), qs, qe);
-            if (counts != null) {
-                monthlySummaries.add(PostponedRatioSummary.from(counts));
-            } else {
+            if (counts.getTotal() == 0) {
                 monthlySummaries.add(PostponedRatioSummary.of(0, 0, 0));
+            } else {
+                monthlySummaries.add(PostponedRatioSummary.from(counts));
             }
         }
 
