@@ -1,5 +1,6 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.service;
 
+import com.likelion.fourthlinethon.team1.cooltime.badge.service.UserStreakService;
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
 import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogCalendarResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogDetailResponse;
@@ -34,6 +35,7 @@ public class DailyLogService {
     private final ReasonTagRepository reasonTagRepository;
     private final LogActivityRepository logActivityRepository;
     private final LogReasonRepository logReasonRepository;
+    private final UserStreakService userStreakService;
 
     /**
      * ✏️ 미룸 기록 작성 (POST /api/logs)
@@ -88,6 +90,9 @@ public class DailyLogService {
                             .build()
             );
         }
+        
+        // 연속 기록 업데이트 및 배지 부여
+        userStreakService.updateStreakOnRecord(user.getId());
 
         return DailyLogResponse.fromEntity(savedLog);
     }
