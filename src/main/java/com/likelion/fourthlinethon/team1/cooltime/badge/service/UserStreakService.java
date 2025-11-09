@@ -41,6 +41,7 @@ public class UserStreakService {
             // 첫 기록
             streak.increaseStreak();
         } else if (last.isEqual(today)) {
+            log.warn("[서비스] 이미 오늘 기록이 존재함 - userId: {}", userId);
             // 중복 기록
             return;
         } else if (last.plusDays(1).isEqual(today)) {
@@ -50,8 +51,8 @@ public class UserStreakService {
             // 끊김 후 새로 시작 (최소 2일 이상 공백 존재)
             streak.resetStreak();
         } else if (last.isAfter(today)) {
+            log.warn("[서비스] 마지막 기록일이 미래임 - userId: {}, lastRecordDate: {}", userId, last);
             // 미래 기록 방어
-            streak.resetStreak();
         }
 
         // 마지막 기록일 갱신 및 저장

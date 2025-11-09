@@ -60,6 +60,7 @@ public class UserBadgeService {
         UserStreak userStreak = userStreakRepository.findByUserId(userId).orElse(null);
 
         // longestStreak 기준으로 표시
+        // null인 경우(기록이 없는 경우) 0으로 처리
         int displayed = (userStreak != null) ? userStreak.getLongestStreak() : 0;
 
         // longestStreak을 기준으로 최고 배지 계산
