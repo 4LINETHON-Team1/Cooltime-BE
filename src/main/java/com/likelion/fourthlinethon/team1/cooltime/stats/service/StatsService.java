@@ -73,6 +73,7 @@ public class StatsService {
 
         return logActivityRepository.findTopPostponedActivityByUserId(user.getId())
                 .map(proj -> TopCategoryResponse.of(proj.getActivityName()))
+                // 기록이 없거나, 미룸 기록이 없는 경우 빈 응답 반환
                 .orElseGet(TopCategoryResponse::empty);
     }
 
@@ -83,7 +84,7 @@ public class StatsService {
         // (activityId, activityName, cnt) 리스트 반환
         var projections = logActivityRepository.findAllPostponedActivityStatsByUserId(user.getId());
 
-        // 미룸 기록이 없는 경우 빈 응답 반환
+        // 기록이 없거나, 미룸 기록이 없는 경우 빈 응답 반환
         if (projections.isEmpty()) {
             return new CategoryStatsAllResponse(new ArrayList<>());
         }
@@ -221,7 +222,7 @@ public class StatsService {
     private PostponedRatioSummary fetchSummary(Long userId, LocalDate startDate, LocalDate endDate) {
         var counts = dailyLogRepository.getPostponeRatioCounts(userId, startDate, endDate);
 
-        if (counts == null || counts.getTotal() == 0L) {
+        if (counts.getTotal() == 0L) {
             return PostponedRatioSummary.empty();
         }
         return PostponedRatioSummary.from(counts);
@@ -246,7 +247,7 @@ public class StatsService {
                 userId, prevClamped.getStart(), prevClamped.getEnd()
         );
 
-        if (prevCounts == null || prevCounts.getTotal() == 0) {
+        if (prevCounts.getTotal() == 0L) {
             return PostponedRatioSummary.empty();
         }
 

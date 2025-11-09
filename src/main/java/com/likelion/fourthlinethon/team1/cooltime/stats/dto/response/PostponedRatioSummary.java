@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Getter
 @NoArgsConstructor
@@ -28,11 +29,11 @@ public class PostponedRatioSummary {
                 .build();
     }
 
-    public static PostponedRatioSummary from(PostponeRatioCounts postponeRatioCounts) {
+    public static PostponedRatioSummary from(@NonNull PostponeRatioCounts postponeRatioCounts) {
         return of(
-                (int)postponeRatioCounts.getTotal(),
-                (int)postponeRatioCounts.getPostponed(),
-                (int)postponeRatioCounts.getDone()
+                postponeRatioCounts.getTotal().intValue(),
+                postponeRatioCounts.getPostponed().intValue(),
+                postponeRatioCounts.getDone().intValue()
         );
     }
 
