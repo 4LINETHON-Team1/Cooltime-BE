@@ -10,12 +10,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class PostponedRateChangeResponse {
-    private int changePercent;
-
     /** UP, DOWN, SAME, NO_DATA */
+    public enum ChangeStatus { UP, DOWN, SAME, NO_DATA }
     private ChangeStatus changeStatus;
 
-    public enum ChangeStatus { UP, DOWN, SAME, NO_DATA }
+    private int changePercent;
 
     public static PostponedRateChangeResponse of(int currentPercent, Integer previousPercent) {
         if (previousPercent == null) {
@@ -24,15 +23,15 @@ public class PostponedRateChangeResponse {
         int diff = currentPercent - previousPercent;
         ChangeStatus status = diff > 0 ? ChangeStatus.UP : diff < 0 ? ChangeStatus.DOWN : ChangeStatus.SAME;
         return PostponedRateChangeResponse.builder()
-                .changePercent(diff)
                 .changeStatus(status)
+                .changePercent(diff)
                 .build();
     }
 
     public static PostponedRateChangeResponse noData() {
         return PostponedRateChangeResponse.builder()
-                .changePercent(0)
                 .changeStatus(ChangeStatus.NO_DATA)
+                .changePercent(0)
                 .build();
     }
 }

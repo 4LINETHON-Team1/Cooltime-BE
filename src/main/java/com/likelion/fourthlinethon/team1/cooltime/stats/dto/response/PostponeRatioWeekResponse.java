@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,8 +15,14 @@ public class PostponeRatioWeekResponse {
     /** 주차 키 (연/월/주차) */
     private WeekKey weekKey;
 
-    /** 기간  */
-    private PeriodResponse period;
+    /** 요청 기간 */
+    private PeriodResponse requestedPeriod;
+
+    /** 실제 유효 기간 */
+    private PeriodResponse effectivePeriod;
+
+    /** 상태  */
+    private String status;
 
     /** 전주 대비 변화 정보 */
     private PostponedRateChangeResponse change;
@@ -27,13 +31,12 @@ public class PostponeRatioWeekResponse {
     private PostponedRatioSummary ratio;
 
     public static PostponeRatioWeekResponse of(
-            LocalDate startDate,
-            LocalDate endDate,
+            PeriodResponse requestedPeriod,
+            PeriodResponse effectivePeriod,
             PostponedRatioSummary current,
             @Nullable PostponedRatioSummary previous
     ){
-        WeekKey key = WeekKey.from(startDate);
-        PeriodResponse period = PeriodResponse.of(startDate, endDate);
+        WeekKey key = WeekKey.from(requestedPeriod.getStartDate());
         PostponedRateChangeResponse change = PostponedRateChangeResponse.of(
                 current.getPostponedPercent(),
                 previous != null ? previous.getPostponedPercent() : null
@@ -41,11 +44,28 @@ public class PostponeRatioWeekResponse {
 
         return PostponeRatioWeekResponse.builder()
                 .weekKey(key)
-                .period(period)
+                .requestedPeriod(requestedPeriod)
+                .effectivePeriod(effectivePeriod)
+                .status(EffectivePeriodStatus.OK.name())
                 .change(change)
                 .ratio(current)
                 .build();
     }
 
+    public static PostponeRatioWeekResponse empty(
+            PeriodResponse requestedPeriod,
+            PeriodResponse effectivePeriod
+    ){
+        WeekKey key = WeekKey.from(requestedPeriod.getStartDate());
+
+        return PostponeRatioWeekResponse.builder()
+                .weekKey(key)
+                .requestedPeriod(requestedPeriod)
+                .effectivePeriod(effectivePeriod)
+                .status(EffectivePeriodStatus.OUT_OF_RANGE.name())
+                .change(PostponedRateChangeResponse.noData())
+                .ratio(PostponedRatioSummary.empty())
+                .build();
+    }
 
 }

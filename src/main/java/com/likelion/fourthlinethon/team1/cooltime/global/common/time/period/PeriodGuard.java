@@ -6,6 +6,11 @@ import java.util.Objects;
 public final class PeriodGuard {
     private PeriodGuard() {}
 
+    /**
+     * 주어진 기간을 가입일과 오늘 날짜를 기준으로 보정(clamp)합니다.
+     * 전체가 가입 이전이거나 전체가 미래인 경우에는 유효하지 않은 상태(null)로 반환합니다.
+     * 보정된 기간과 상태를 포함한 ClampedPeriod 객체를 반환합니다.
+     */
     public static ClampedPeriod clamp(LocalDate signupDate, LocalDate periodStart, LocalDate periodEnd, LocalDate today) {
         Objects.requireNonNull(signupDate);
         Objects.requireNonNull(periodStart);
@@ -18,11 +23,11 @@ public final class PeriodGuard {
 
         // 전체가 가입 이전
         if (periodEnd.isBefore(signupDate)) {
-            return new ClampedPeriod(periodStart, periodEnd, PeriodStatus.PRE_SIGNUP_INVALID);
+            return new ClampedPeriod(null, null, PeriodStatus.PRE_SIGNUP_INVALID);
         }
         // 전체가 미래
         if (periodStart.isAfter(today)) {
-            return new ClampedPeriod(periodStart, periodEnd, PeriodStatus.FUTURE_INVALID);
+            return new ClampedPeriod(null, null, PeriodStatus.FUTURE_INVALID);
         }
 
         boolean containsSignup = !signupDate.isBefore(periodStart) && !signupDate.isAfter(periodEnd); // start <= signup <= end
