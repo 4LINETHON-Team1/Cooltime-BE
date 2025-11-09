@@ -37,6 +37,11 @@ public class PostponedRatioSummary {
     }
 
     public static PostponedRatioSummary empty() {
-        return of(0, 0, 0);
+        return PostponedRatioSummary.builder()
+                .totalCount(0)
+                .postponedCount(0)
+                .doneCount(0)
+                .postponedPercent(0)
+                .build();
     }
 }
