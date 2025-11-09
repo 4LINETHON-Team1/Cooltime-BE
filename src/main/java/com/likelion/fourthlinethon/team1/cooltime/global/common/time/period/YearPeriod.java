@@ -16,8 +16,8 @@ public class YearPeriod implements Period {
     private final LocalDate start; // 해당 해 1월 1일(포함)
     private final LocalDate end;   // 해당 해 12월 31일(포함)
 
-    private YearPeriod(LocalDate firstDay) {
-        this.start = LocalDate.of(firstDay.getYear(), 1, 1);
+    private YearPeriod(LocalDate anyDate) {
+        this.start = LocalDate.of(anyDate.getYear(), 1, 1);
         this.end = this.start.plusYears(1).minusDays(1);
     }
 
