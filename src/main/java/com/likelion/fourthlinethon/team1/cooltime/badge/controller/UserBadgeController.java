@@ -43,7 +43,7 @@ public class UserBadgeController {
     }
 
     @Operation(summary = "획득 배지 목록 조회", description = "전체 배지 목록과 각 배지의 획득 여부를 반환합니다.")
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<BaseResponse<BadgeListResponse>> getBadgeList(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
