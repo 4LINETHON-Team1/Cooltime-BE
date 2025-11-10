@@ -1,10 +1,10 @@
 package com.likelion.fourthlinethon.team1.cooltime.stats.dto.response;
 
-import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 @Getter
 @NoArgsConstructor

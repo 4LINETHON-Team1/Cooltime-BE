@@ -1,11 +1,12 @@
 package com.likelion.fourthlinethon.team1.cooltime.stats.dto.response;
 
 import com.likelion.fourthlinethon.team1.cooltime.stats.projection.PostponeRatioCounts;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import org.jspecify.annotations.NonNull;
 
 @Getter
 @NoArgsConstructor

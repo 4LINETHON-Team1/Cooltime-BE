@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 @Getter
 @NoArgsConstructor
@@ -16,7 +17,7 @@ public class PostponedRateChangeResponse {
 
     private int changePercent;
 
-    public static PostponedRateChangeResponse of(int currentPercent, Integer previousPercent) {
+    public static PostponedRateChangeResponse of(int currentPercent, @Nullable Integer previousPercent) {
         if (previousPercent == null) {
             return noData();
         }

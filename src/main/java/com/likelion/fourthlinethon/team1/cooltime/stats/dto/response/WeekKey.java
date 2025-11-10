@@ -1,5 +1,6 @@
 package com.likelion.fourthlinethon.team1.cooltime.stats.dto.response;
 
+import com.likelion.fourthlinethon.team1.cooltime.global.common.time.period.WeekPeriod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,13 +26,14 @@ public class WeekKey {
                 .build();
     }
 
-    /** LocalDate로부터 ISO-8601 기준 주차 계산 */
+    /** 특정 날짜가 속한 주차 키 생성 */
     public static WeekKey from(LocalDate date) {
-        WeekFields wf = WeekFields.ISO;
+        WeekPeriod weekPeriod = WeekPeriod.of(date);
+        LocalDate labelAnchor = weekPeriod.getStart().plusDays(3);
         return of(
-                date.getYear(),
-                date.getMonthValue(),
-                date.get(wf.weekOfMonth())
+                labelAnchor.getYear(),
+                labelAnchor.getMonthValue(),
+                weekPeriod.weekOfMonthAuto()
         );
     }
 }
