@@ -35,14 +35,14 @@ public class ReasonTagController {
         return ResponseEntity.ok(BaseResponse.success("이유가 추가되었습니다.", response));
     }
 
-    @Operation(summary = "이유 삭제", description = "사용자가 직접 추가한 이유 항목을 비활성화 처리합니다.")
+    @Operation(summary = "이유 삭제", description = "이유명을 기준으로 비활성화 처리합니다.")
     @DeleteMapping
     public ResponseEntity<BaseResponse<List<ReasonTagResponse>>> deleteReason(
             @Valid @RequestBody ReasonDeleteRequest request) {
 
         User user = SecurityUtil.getCurrentUser();
-        List<ReasonTagResponse> response = reasonTagService.deleteReason(user, request.getReasonId());
+        List<ReasonTagResponse> response = reasonTagService.deleteReasonByName(user, request.getName());
 
-        return ResponseEntity.ok(BaseResponse.success("이유가 삭제(비활성화)되었습니다.", response));
+        return ResponseEntity.ok(BaseResponse.success("이유가 비활성화되었습니다.", response));
     }
 }

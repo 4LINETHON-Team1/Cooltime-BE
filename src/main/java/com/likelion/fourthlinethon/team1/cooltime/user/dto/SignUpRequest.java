@@ -17,7 +17,7 @@ public class SignUpRequest {
     )
     @NotBlank(message = "아이디는 필수 입력 항목입니다.")
     @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,12}$",
+            regexp = "^[A-Za-z\\d]{4,12}$",
             message = "아이디는 4~12자의 영문과 숫자 조합이어야 합니다."
     )
     private String username;
@@ -28,8 +28,8 @@ public class SignUpRequest {
     )
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
     @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,20}$",
-            message = "비밀번호는 8~20자의 영문, 숫자, 특수문자 2종 이상을 포함해야 합니다."
+            regexp = "^(?=(?:.*[A-Za-z].*)(?:.*\\d.*)|(?:.*[A-Za-z].*)(?:.*[!@#$%^&*()_+=-].*)|(?:.*\\d.*)(?:.*[!@#$%^&*()_+=-].*)).{8,20}$",
+            message = "비밀번호는 8~20자의 영문, 숫자, 특수문자 중 2종 이상을 포함해야 합니다."
     )
     private String password;
 

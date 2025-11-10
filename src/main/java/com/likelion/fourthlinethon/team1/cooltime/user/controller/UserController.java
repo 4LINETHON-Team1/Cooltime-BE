@@ -59,7 +59,7 @@ public class UserController {
             @RequestParam String username) {
 
         // 정규식 검증 (4~12자 영문+숫자)
-        if (!username.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,12}$")) {
+        if (!username.matches("^[A-Za-z\\d]{4,12}$")) {
             return ResponseEntity.badRequest()
                     .body(BaseResponse.error("아이디는 4~12자의 영문과 숫자 조합이어야 합니다."));
         }

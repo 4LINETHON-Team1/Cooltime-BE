@@ -65,16 +65,15 @@ public class ReasonTagService {
      * 이유 삭제 (default 불가, isActive=false 후 전체 활성 이유 반환)
      */
     @Transactional
-    public List<ReasonTagResponse> deleteReason(User user, Long reasonId) {
-        ReasonTag reason = reasonTagRepository.findById(reasonId)
+    public List<ReasonTagResponse> deleteReasonByName(User user, String name) {
+        ReasonTag reason = reasonTagRepository.findByUserAndName(user, name)
                 .orElseThrow(() -> new CustomException(DailyLogErrorCode.REASON_NOT_FOUND));
 
-        if (!reason.getUser().getId().equals(user.getId())) {
-            throw new CustomException(DailyLogErrorCode.REASON_NOT_FOUND);
-        }
-
         if (reason.getIsDefault()) {
-            throw new CustomException(DailyLogErrorCode.ACTIVITY_OR_REASON_ALREADY_EXISTS);
+            throw new CustomException(DailyLogErrorCode.CANNOT_DELETE_DEFAULT_TAG);
+        }
+        if (!reason.getIsActive()) {
+            throw new CustomException(DailyLogErrorCode.ALREADY_INACTIVE_TAG);
         }
 
         reason.setIsActive(false);
