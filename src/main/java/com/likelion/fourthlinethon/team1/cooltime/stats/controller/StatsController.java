@@ -96,7 +96,7 @@ public class StatsController {
     }
 
     @Operation(summary = "주간 미룸 비율(대표 날짜)", description = "date가 속한 주(월~일)의 미룸 비율을 반환합니다.")
-    @GetMapping(value = "/postpone-ratio/week/by-date", params = "date")
+    @GetMapping(value = "/postpone-ratio/week/by-date")
     public ResponseEntity<BaseResponse<PostponeRatioWeekResponse>> getPostponeRatioWeekByDate(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
@@ -111,7 +111,7 @@ public class StatsController {
     }
 
     @Operation(summary = "주간 미룸 비율(월 기준 n주차)", description = "year, month, weekOfMonth로 지정된 주의 미룸 비율을 반환합니다.")
-    @GetMapping(value = "/postpone-ratio/week/by-calendar", params = {"year","month","weekOfMonth"})
+    @GetMapping(value = "/postpone-ratio/week/by-calendar")
     public ResponseEntity<BaseResponse<PostponeRatioWeekResponse>> getPostponeRatioWeekByCalendar(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam int year,
@@ -128,7 +128,7 @@ public class StatsController {
     }
 
     @Operation(summary = "주간 미룸 비율(ISO 주차)", description = "isoYear, isoWeek로 지정된 ISO 주의 미룸 비율을 반환합니다.")
-    @GetMapping(value = "/postpone-ratio/week/by-iso", params = {"isoYear","isoWeek"})
+    @GetMapping(value = "/postpone-ratio/week/by-iso")
     public ResponseEntity<BaseResponse<PostponeRatioWeekResponse>> getPostponeRatioWeekByIso(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam int isoYear,
@@ -143,7 +143,7 @@ public class StatsController {
         );
     }
     @Operation(summary = "월간 미룸 비율(대표 날짜)", description = "date가 속한 월의 미룸 비율을 반환합니다.")
-    @GetMapping(value = "/postpone-ratio/month/by-date", params = "date")
+    @GetMapping(value = "/postpone-ratio/month/by-date")
     public ResponseEntity<BaseResponse<PostponeRatioMonthResponse>> getPostponeRatioMonthByDate(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
@@ -158,7 +158,7 @@ public class StatsController {
     }
 
     @Operation(summary = "월간 미룸 비율(연/월)", description = "year, month로 지정된 월의 미룸 비율을 반환합니다.")
-    @GetMapping(value = "/postpone-ratio/month/by-ym", params = {"year","month"})
+    @GetMapping(value = "/postpone-ratio/month/by-ym")
     public ResponseEntity<BaseResponse<PostponeRatioMonthResponse>> getPostponeRatioMonthByYm(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam int year,
@@ -173,8 +173,22 @@ public class StatsController {
         );
     }
 
+    @Operation(summary = "연간 미룸 비율(대표 날짜)", description = "date가 속한 연도의 미룸 비율을 반환합니다.")
+    @GetMapping(value = "/postpone-ratio/year/by-date")
+    public ResponseEntity<BaseResponse<PostponeRatioYearResponse>> getPostponeRatioYearByDate(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        YearPeriod period = periodResolver.resolveYear(date);
+        return ResponseEntity.ok(
+                BaseResponse.success(
+                        "연간 미룸 비율 조회 성공(대표 날짜)",
+                        statsService.getPostponeRatioYear(userDetails.getUser(), period)
+                )
+        );
+    }
     @Operation(summary = "연간 미룸 비율(연도)", description = "year로 지정된 연도의 미룸 비율을 반환합니다.")
-    @GetMapping(value = "/postpone-ratio/year/by-year", params = "year")
+    @GetMapping(value = "/postpone-ratio/year/by-year")
     public ResponseEntity<BaseResponse<PostponeRatioYearResponse>> getPostponeRatioYearByYear(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam int year
@@ -188,20 +202,7 @@ public class StatsController {
         );
     }
 
-    @Operation(summary = "연간 미룸 비율(대표 날짜)", description = "date가 속한 연도의 미룸 비율을 반환합니다.")
-    @GetMapping(value = "/postpone-ratio/year/by-date", params = "date")
-    public ResponseEntity<BaseResponse<PostponeRatioYearResponse>> getPostponeRatioYearByDate(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-    ) {
-        YearPeriod period = periodResolver.resolveYear(date);
-        return ResponseEntity.ok(
-                BaseResponse.success(
-                        "연간 미룸 비율 조회 성공(대표 날짜)",
-                        statsService.getPostponeRatioYear(userDetails.getUser(), period)
-                )
-        );
-    }
+
 
 
 }
