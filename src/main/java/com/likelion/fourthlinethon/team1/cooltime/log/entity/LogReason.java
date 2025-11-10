@@ -9,7 +9,12 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "logs_reasons")
+@Table(
+    name = "logs_reasons",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_log_reason", columnNames = {"log_id", "reason_id"})
+    }
+)
 public class LogReason extends BaseTimeEntity {
 
     @Id

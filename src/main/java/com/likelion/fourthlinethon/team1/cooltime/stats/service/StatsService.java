@@ -5,18 +5,22 @@ import com.likelion.fourthlinethon.team1.cooltime.log.repository.DailyLogReposit
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.LogActivityRepository;
 import com.likelion.fourthlinethon.team1.cooltime.stats.dto.response.*;
 import com.likelion.fourthlinethon.team1.cooltime.stats.projection.ActivityStatsProjection;
+import com.likelion.fourthlinethon.team1.cooltime.stats.projection.PostponeRatioCounts;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StatsService {
     private final DailyLogRepository dailyLogRepository;
     private final LogActivityRepository logActivityRepository;
@@ -72,6 +76,7 @@ public class StatsService {
 
         return logActivityRepository.findTopPostponedActivityByUserId(user.getId())
                 .map(proj -> TopCategoryResponse.of(proj.getActivityName()))
+                // 기록이 없거나, 미룸 기록이 없는 경우 빈 응답 반환
                 .orElseGet(TopCategoryResponse::empty);
     }
 
@@ -82,7 +87,7 @@ public class StatsService {
         // (activityId, activityName, cnt) 리스트 반환
         var projections = logActivityRepository.findAllPostponedActivityStatsByUserId(user.getId());
 
-        // 미룸 기록이 없는 경우 빈 응답 반환
+        // 기록이 없거나, 미룸 기록이 없는 경우 빈 응답 반환
         if (projections.isEmpty()) {
             return new CategoryStatsAllResponse(new ArrayList<>());
         }
@@ -91,19 +96,9 @@ public class StatsService {
         int totalCount = (int)dailyLogRepository.countByUser(user);
 
         // 3) Rank 매기면서 DTO 변환
-        List<CategoryRankItem> items = new ArrayList<>(projections.size());
-        for (int i = 0; i < projections.size(); i++) {
-            ActivityStatsProjection p = projections.get(i);
-            items.add(
-                    CategoryRankItem.builder()
-                            .categoryId(p.getActivityId())
-                            .categoryName(p.getActivityName())
-                            .rank(i + 1) // 1부터 시작
-                            .totalCount(totalCount)
-                            .postponedCount(Math.toIntExact(p.getCnt()))
-                            .build()
-            );
-        }
+        List<CategoryRankItem> items = IntStream.range(0, projections.size())
+                .mapToObj(i ->  CategoryRankItem.of(projections.get(i), i + 1, totalCount))
+                .toList();
 
         return new CategoryStatsAllResponse(items);
     }
@@ -113,145 +108,166 @@ public class StatsService {
         LocalDate startDate = user.getCreatedAt().toLocalDate();
         LocalDate endDate = LocalDate.now();
 
-        // 2) 미룸 비율 집계 조회
-        var counts = dailyLogRepository.getPostponeRatioCounts(
-                user.getId(),
-                startDate,
-                endDate
-        );
-        log.info(("[서비스] 전체 미룸 비율 집계 조회 완료 - userId: {}, counts: {}"), user.getId(), counts);
-        if (counts.getTotal()==0L) return PostponeRatioTotalResponse.from(PostponedRatioSummary.empty());
-        PostponedRatioSummary summary = PostponedRatioSummary.from(counts);
+        // 2) 전체 미룸 비율 요약 조회
+        PostponedRatioSummary summary = fetchSummary(user.getId(), startDate, endDate);
 
         return PostponeRatioTotalResponse.from(summary);
     }
 
     public PostponeRatioWeekResponse getPostponeRatioWeek(User user, WeekPeriod period) {
-        // 1) 오늘/가입일 및 기간 유효성 판정 (가입 이전/미래 차단, 가입 주/현재 주 보정)
+        // 1) 회원 가입일 및 오늘 날짜 조회
         LocalDate signup = user.getCreatedAt().toLocalDate();
         LocalDate today = LocalDate.now();
 
+        // 2) 기간 클램프 및 유효성 검사
         ClampedPeriod clamped = PeriodGuard.clamp(signup, period, today);
+
+        // 3) 요청 기간 및 유효 기간 생성
+        PeriodResponse requestedPeriod = PeriodResponse.of(period.getStart(), period.getEnd());
+        PeriodResponse effectivePeriod = PeriodResponse.of(clamped.getStart(), clamped.getEnd());
+
         if (clamped.invalid()) {
-            throw new IllegalArgumentException("요청한 기간은 조회할 수 없습니다.");
+            log.warn("[서비스] 주간 미룸 비율 조회 - 유효하지 않은 기간 요청 - userId: {}, period: {}", user.getId(), period);
+            return PostponeRatioWeekResponse.empty(requestedPeriod, effectivePeriod);
         }
 
-        // 2) 기준 주 데이터 조회 (기록이 없더라도 요약은 0%로 생성)
-        var currentCounts = dailyLogRepository.getPostponeRatioCounts(
-                user.getId(), clamped.getStart(), clamped.getEnd()
-        );
-        PostponedRatioSummary currentSummary = (currentCounts.getTotal() == 0)
-                ? PostponedRatioSummary.of(0, 0, 0)
-                : PostponedRatioSummary.from(currentCounts);
+        // 4) 현재 및 이전 기간 요약 조회
+        PostponedRatioSummary currentSummary = fetchSummary(user.getId(), clamped.getStart(), clamped.getEnd());
+        PostponedRatioSummary previousSummary = fetchPreviousSummary(user.getId(), signup, (WeekPeriod) period.prev(), today);
 
-        // 3) 이전 주 기간 계산 및 조회 (가입 이전/미래인 경우 제외)
-        WeekPeriod prevPeriod = (WeekPeriod) period.prev();
-        ClampedPeriod prevClamped = PeriodGuard.clamp(signup, prevPeriod, today);
-
-        PostponedRatioSummary previousSummary = null;
-        if (!prevClamped.invalid()) {
-            var prevCounts = dailyLogRepository.getPostponeRatioCounts(
-                    user.getId(), prevClamped.getStart(), prevClamped.getEnd()
-            );
-            if (prevCounts != null) {
-                long total = prevCounts.getTotal();
-                if (total > 0) {
-                    previousSummary = PostponedRatioSummary.from(prevCounts);
-                }
-            }
-        }
-
-        // 4) 응답 생성 (기간은 보정된 start/end 사용)
         return PostponeRatioWeekResponse.of(
-            clamped.getStart(),
-            clamped.getEnd(),
+            requestedPeriod,
+            effectivePeriod,
             currentSummary,
             previousSummary
         );
     }
 
     public PostponeRatioMonthResponse getPostponeRatioMonth(User user, MonthPeriod period) {
+        // 1) 회원 가입일 및 오늘 날짜 조회
         LocalDate signup = user.getCreatedAt().toLocalDate();
         LocalDate today = LocalDate.now();
 
+        // 2) 기간 클램프 및 유효성 검사
         ClampedPeriod clamped = PeriodGuard.clamp(signup, period, today);
+
+        // 3) 요청 기간 및 유효 기간 생성
+        PeriodResponse requestedPeriod = PeriodResponse.of(period.getStart(), period.getEnd());
+        PeriodResponse effectivePeriod = PeriodResponse.of(clamped.getStart(), clamped.getEnd());
+
         if (clamped.invalid()) {
-            throw new IllegalArgumentException("요청한 기간은 조회할 수 없습니다.");
+            log.warn("[서비스] 월간 미룸 비율 조회 - 유효하지 않은 기간 요청 - userId: {}, period: {}", user.getId(), period);
+            return PostponeRatioMonthResponse.empty(requestedPeriod, effectivePeriod);
         }
 
-        var currentCounts = dailyLogRepository.getPostponeRatioCounts(
-                user.getId(), clamped.getStart(), clamped.getEnd()
-        );
-        PostponedRatioSummary currentSummary = (currentCounts.getTotal() == 0)
-                ? PostponedRatioSummary.of(0, 0, 0)
-                : PostponedRatioSummary.from(currentCounts);
-
-        MonthPeriod prevPeriod = (MonthPeriod) period.prev();
-        ClampedPeriod prevClamped = PeriodGuard.clamp(signup, prevPeriod, today);
-
-        PostponedRatioSummary previousSummary = null;
-        if (!prevClamped.invalid()) {
-            var prevCounts = dailyLogRepository.getPostponeRatioCounts(
-                    user.getId(), prevClamped.getStart(), prevClamped.getEnd()
-            );
-            if (prevCounts != null && prevCounts.getTotal() > 0) {
-                previousSummary = PostponedRatioSummary.from(prevCounts);
-            }
-        }
+        // 4) 현재 및 이전 기간 요약 조회
+        PostponedRatioSummary currentSummary = fetchSummary(user.getId(), clamped.getStart(), clamped.getEnd());
+        PostponedRatioSummary previousSummary = fetchPreviousSummary(user.getId(), signup, (MonthPeriod) period.prev(), today);
 
         return PostponeRatioMonthResponse.of(
-                clamped.getStart(),
-                clamped.getEnd(),
+                requestedPeriod,
+                effectivePeriod,
                 currentSummary,
                 previousSummary
         );
     }
 
     public PostponeRatioYearResponse getPostponeRatioYear(User user, YearPeriod period) {
+        // 1) 회원 가입일 및 오늘 날짜 조회
         LocalDate signup = user.getCreatedAt().toLocalDate();
         LocalDate today = LocalDate.now();
 
+        // 2) 기간 클램프 및 유효성 검사
         ClampedPeriod clamped = PeriodGuard.clamp(signup, period, today);
+
+        // 3) 요청 기간 및 유효 기간 생성
+        PeriodResponse requestedPeriod = PeriodResponse.of(period.getStart(), period.getEnd());
+        PeriodResponse effectivePeriod = PeriodResponse.of(clamped.getStart(), clamped.getEnd());
+
         if (clamped.invalid()) {
-            throw new IllegalArgumentException("요청한 기간은 조회할 수 없습니다.");
+            log.warn("[서비스] 연간 미룸 비율 조회 - 유효하지 않은 기간 요청 - userId: {}, period: {}", user.getId(), period);
+            return PostponeRatioYearResponse.empty(requestedPeriod, effectivePeriod);
         }
 
+        // 4) 기준 연도 월별 요약 조회
         int year = period.getStart().getYear();
-        List<PostponedRatioSummary> monthlySummaries = new ArrayList<>(12);
-        for (int m = 1; m <= 12; m++) {
-            MonthPeriod mp = MonthPeriod.of(year, m);
-            // 월 기간이 클램프 범위와 겹치지 않으면 0 요약
-            if (mp.getEnd().isBefore(clamped.getStart()) || mp.getStart().isAfter(clamped.getEnd())) {
-                monthlySummaries.add(PostponedRatioSummary.of(0, 0, 0));
-                continue;
-            }
-            LocalDate qs = mp.getStart().isBefore(clamped.getStart()) ? clamped.getStart() : mp.getStart();
-            LocalDate qe = mp.getEnd().isAfter(clamped.getEnd()) ? clamped.getEnd() : mp.getEnd();
+        List<PostponedRatioSummary> monthlySummaries = java.util.stream.IntStream.rangeClosed(1, 12)
+                .mapToObj(month -> fetchMonthlySummaryInRange(user.getId(), year, month, clamped))
+                .toList();
 
-            var counts = dailyLogRepository.getPostponeRatioCounts(user.getId(), qs, qe);
-            if (counts.getTotal() == 0) {
-                monthlySummaries.add(PostponedRatioSummary.of(0, 0, 0));
-            } else {
-                monthlySummaries.add(PostponedRatioSummary.from(counts));
-            }
-        }
+        // 5) 이전 연도 요약 조회
+        PostponedRatioSummary previousYearSummary = fetchPreviousSummary(user.getId(), signup, (YearPeriod) period.prev(), today);
 
-        // 전년도 요약 (무기록이면 null)
-        YearPeriod prevYear = (YearPeriod) period.prev();
-        ClampedPeriod prevClamped = PeriodGuard.clamp(signup, prevYear, today);
-        PostponedRatioSummary previousYearSummary = null;
-        if (!prevClamped.invalid()) {
-            var prevCounts = dailyLogRepository.getPostponeRatioCounts(user.getId(), prevClamped.getStart(), prevClamped.getEnd());
-            if (prevCounts != null && prevCounts.getTotal() > 0) {
-                previousYearSummary = PostponedRatioSummary.from(prevCounts);
-            }
-        }
 
         return PostponeRatioYearResponse.of(
-                clamped.getStart(),
-                clamped.getEnd(),
+                requestedPeriod,
+                effectivePeriod,
                 monthlySummaries,
                 previousYearSummary
         );
+    }
+
+    /**
+     * 현재 기간의 미룸 비율 요약 조회
+     * - DB 조회 후 기록이 없으면 빈 요약(0%) 반환
+     * - 기록이 있으면 정상 요약 생성
+     */
+    private PostponedRatioSummary fetchSummary(Long userId, LocalDate startDate, LocalDate endDate) {
+        var counts = dailyLogRepository.getPostponeRatioCounts(userId, startDate, endDate);
+
+        if (counts.getTotal() == 0L) {
+            return PostponedRatioSummary.empty();
+        }
+        return PostponedRatioSummary.from(counts);
+    }
+
+    /**
+     * 이전 기간(prev)의 미룸 비율 요약 조회
+     * - 기간이 유효하지 않으면(가입 이전) null 반환
+     * - 기록이 전혀 없으면 빈 요약 반환
+     * - 기록이 있으면 요약 생성
+     */
+    private <T extends Period> PostponedRatioSummary fetchPreviousSummary(
+            Long userId, LocalDate signup, T prevPeriod, LocalDate today) {
+        ClampedPeriod prevClamped = PeriodGuard.clamp(signup, prevPeriod.getStart(), prevPeriod.getEnd(), today);
+
+        // 이전 기간이 회원가입 이전임
+        if (prevClamped.invalid()) {
+            return null;
+        }
+
+        var prevCounts = dailyLogRepository.getPostponeRatioCounts(
+                userId, prevClamped.getStart(), prevClamped.getEnd()
+        );
+
+        if (prevCounts.getTotal() == 0L) {
+            return PostponedRatioSummary.empty();
+        }
+
+        return PostponedRatioSummary.from(prevCounts);
+    }
+
+    /**
+     * 연도 범위 내 특정 월의 미룸 비율 요약 조회
+     * - 월이 연도 범위를 벗어나면 빈 요약 반환
+     * - 월이 범위와 겹치면 해당 구간만 조회
+     */
+    private PostponedRatioSummary fetchMonthlySummaryInRange(Long userId, int year, int month, ClampedPeriod yearRange) {
+        // 1) 월 기간 생성
+        MonthPeriod monthPeriod = MonthPeriod.of(year, month);
+
+        // 2) 월 기간이 회원 가입 연도를 벗어나거나 미래인 경우 빈 요약 반환
+        if (monthPeriod.getEnd().isBefore(yearRange.getStart()) ||
+            monthPeriod.getStart().isAfter(yearRange.getEnd())) {
+            return PostponedRatioSummary.empty();
+        }
+
+        // 3) 월 기간이 연도 범위와 겹치는 구간 계산
+        LocalDate start = monthPeriod.getStart().isBefore(yearRange.getStart())
+            ? yearRange.getStart() : monthPeriod.getStart();
+        LocalDate end = monthPeriod.getEnd().isAfter(yearRange.getEnd())
+            ? yearRange.getEnd() : monthPeriod.getEnd();
+
+        return fetchSummary(userId, start, end);
     }
 }

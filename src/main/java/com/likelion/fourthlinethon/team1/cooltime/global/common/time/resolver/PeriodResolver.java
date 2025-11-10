@@ -13,17 +13,17 @@ import java.time.LocalDate;
 public interface PeriodResolver {
 
     // Week
-    WeekPeriod resolveWeek(LocalDate date);
+    WeekPeriod resolveWeek(LocalDate anyDate);
     WeekPeriod resolveWeek(int year, int month, int weekOfMonth);
     WeekPeriod resolveWeekByIso(int isoYear, int isoWeek);
 
     // Month
-    MonthPeriod resolveMonth(int year, int month);
     MonthPeriod resolveMonth(LocalDate anyDate);
+    MonthPeriod resolveMonth(int year, int month);
 
     // Year
-    YearPeriod resolveYear(int year);
     YearPeriod resolveYear(LocalDate anyDate);
+    YearPeriod resolveYear(int year);
 
     // 유틸
     default LocalDate requireDate(LocalDate date) {

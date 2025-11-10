@@ -12,12 +12,6 @@ import lombok.experimental.SuperBuilder;
 public class PostponeRatioTotalResponse {
     private PostponedRatioSummary total;
 
-    public static PostponeRatioTotalResponse of(int totalCount, int postponedCount, int doneCount) {
-        return PostponeRatioTotalResponse.builder()
-                .total(PostponedRatioSummary.of(totalCount, postponedCount, doneCount))
-                .build();
-    }
-
     public static PostponeRatioTotalResponse from(PostponedRatioSummary summary) {
         return PostponeRatioTotalResponse.builder()
                 .total(summary)

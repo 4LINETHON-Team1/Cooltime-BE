@@ -10,7 +10,15 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "reason_tags")
+@Table(
+    name = "reason_tags",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_reason_name", columnNames = {"user_id", "name"})
+    },
+    indexes = {
+        @Index(name = "idx_user_default", columnList = "user_id, isDefault")
+    }
+)
 public class ReasonTag extends BaseTimeEntity {
 
     @Id

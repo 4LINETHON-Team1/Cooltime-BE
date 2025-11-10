@@ -18,8 +18,8 @@ public class MonthPeriod implements Period {
     private final LocalDate start; // 해당 월 1일(포함)
     private final LocalDate end;   // 해당 월 말일(포함)
 
-    private MonthPeriod(LocalDate firstDay) {
-        this.start = firstDay.withDayOfMonth(1);
+    private MonthPeriod(LocalDate anyDate) {
+        this.start = anyDate.withDayOfMonth(1);
         this.end = this.start.with(TemporalAdjusters.lastDayOfMonth());
     }
 

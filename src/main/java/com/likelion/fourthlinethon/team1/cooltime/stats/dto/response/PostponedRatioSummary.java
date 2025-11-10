@@ -1,10 +1,12 @@
 package com.likelion.fourthlinethon.team1.cooltime.stats.dto.response;
 
 import com.likelion.fourthlinethon.team1.cooltime.stats.projection.PostponeRatioCounts;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.NonNull;
 
 @Getter
 @NoArgsConstructor
@@ -28,15 +30,21 @@ public class PostponedRatioSummary {
                 .build();
     }
 
-    public static PostponedRatioSummary from(PostponeRatioCounts postponeRatioCounts) {
+    public static PostponedRatioSummary from(@NonNull PostponeRatioCounts postponeRatioCounts) {
         return of(
-                (int)postponeRatioCounts.getTotal(),
-                postponeRatioCounts.getPostponed() == 0 ? 0 : (int)postponeRatioCounts.getPostponed(),
-                postponeRatioCounts.getDone() == 0 ? 0 : (int)postponeRatioCounts.getDone()
+                postponeRatioCounts.getTotal().intValue(),
+                postponeRatioCounts.getPostponed().intValue(),
+                postponeRatioCounts.getDone().intValue()
         );
     }
 
     public static PostponedRatioSummary empty() {
-        return of(0, 0, 0);
+        return PostponedRatioSummary.builder()
+                .totalCount(0)
+                .postponedCount(0)
+                .doneCount(0)
+                .postponedPercent(0)
+                .build();
     }
+
 }

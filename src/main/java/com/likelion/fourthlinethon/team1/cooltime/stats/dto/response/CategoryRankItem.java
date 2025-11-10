@@ -1,5 +1,6 @@
 package com.likelion.fourthlinethon.team1.cooltime.stats.dto.response;
 
+import com.likelion.fourthlinethon.team1.cooltime.stats.projection.ActivityStatsProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,4 +28,14 @@ public class CategoryRankItem {
     /** 전체 기록 중 해당 카테고리로 '미뤘어요' 한 횟수 */
     @Schema(description = "전체 기록 중 해당 카테고리로 '미뤘어요' 한 횟수", example = "40")
     private int postponedCount;
+
+    public static CategoryRankItem of(ActivityStatsProjection projection, int rank, int totalCount) {
+        return CategoryRankItem.builder()
+                .categoryId(projection.getActivityId())
+                .categoryName(projection.getActivityName())
+                .rank(rank)
+                .totalCount(totalCount)
+                .postponedCount(projection.getCnt().intValue())
+                .build();
+    }
 }

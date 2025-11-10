@@ -12,6 +12,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
@@ -85,6 +86,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(BaseResponse.error(400, "잘못된 요청 인자입니다."));
     }
+
+    // NoResourceFoundException 처리
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<BaseResponse<Object>> handleNoResourceFoundException(NoResourceFoundException ex)    {
+        log.warn("리소스 없음 예외 발생: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(BaseResponse.error(404, "요청하신 리소스를 찾을 수 없습니다."));
+    }
+
+
 
   // 예상치 못한 예외
   @ExceptionHandler(Exception.class)

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,13 +15,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Slf4j
 public class PostponeRatioYearResponse {
 
     /** 연도 */
     private int year;
 
-    /** 기간  */
-    private PeriodResponse period;
+    /** 요청 기간 */
+    private PeriodResponse requestedPeriod;
+
+    /** 실제 유효 기간 */
+    private PeriodResponse effectivePeriod;
+
+    /** 상태  */
+    private String status;
 
     /** 전년도 대비 변화 정보 */
     private PostponedRateChangeResponse change;
@@ -29,43 +37,67 @@ public class PostponeRatioYearResponse {
     private List<MonthlyPoint> months;
 
     public static PostponeRatioYearResponse of(
-            LocalDate startDate,
-            LocalDate endDate,
+            PeriodResponse requestedPeriod,
+            PeriodResponse effectivePeriod,
             List<PostponedRatioSummary> monthlySummaries,
             @Nullable PostponedRatioSummary previousYearSummary
     ) {
-        int year = startDate.getYear();
+        int year = requestedPeriod.getStartDate().getYear();
 
         // 1) 월별 포인트 생성 (표시 용)
         List<MonthlyPoint> monthPoints = new ArrayList<>();
         for (int i = 0; i < monthlySummaries.size(); i++) {
             int month = i + 1;
             PostponedRatioSummary s = monthlySummaries.get(i);
-            MonthKey key = MonthKey.of(year, month);
-            monthPoints.add(MonthlyPoint.of(key, s.getPostponedPercent()));
+            monthPoints.add(MonthlyPoint.of(month, s.getPostponedPercent()));
         }
-        // 2) 기간
-        PeriodResponse period = PeriodResponse.of(startDate, endDate);
 
-        // 3) 연간 퍼센트는 누적합 기반으로 계산
+        // 2) 연간 퍼센트는 누적합 기반으로 계산
         int currentYearPercent = computePercentFromSummaries(monthlySummaries);
 
-        // 4) 전년도 대비 변화 (이미 계산된 요약에서 퍼센트만 꺼냄)
+        // 3) 전년도 대비 변화 (이미 계산된 요약에서 퍼센트만 꺼냄)
         Integer previousYearPercent = (previousYearSummary == null) ? null : previousYearSummary.getPostponedPercent();
         PostponedRateChangeResponse change = PostponedRateChangeResponse.of(currentYearPercent, previousYearPercent);
 
-        // 5) 조립
+        // 4) 조립
         return PostponeRatioYearResponse.builder()
                 .year(year)
-                .period(period)
+                .requestedPeriod(requestedPeriod)
+                .effectivePeriod(effectivePeriod)
+                .status(EffectivePeriodStatus.OK.name())
                 .change(change)
                 .months(monthPoints)
                 .build();
     }
 
+    public static  PostponeRatioYearResponse empty(
+            PeriodResponse requestedPeriod,
+            PeriodResponse effectivePeriod
+    ) {
+        int year = requestedPeriod.getStartDate().getYear();
+
+        // 1~12월까지 postponedPercent=0인 MonthlyPoint 생성
+        List<MonthlyPoint> emptyMonths = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            emptyMonths.add(MonthlyPoint.of(month, 0));
+        }
+
+        return PostponeRatioYearResponse.builder()
+                .year(year)
+                .requestedPeriod(requestedPeriod)
+                .effectivePeriod(effectivePeriod)
+                .status(EffectivePeriodStatus.OUT_OF_RANGE.name())
+                .change(PostponedRateChangeResponse.noData())
+                .months(emptyMonths)
+                .build();
+    }
+
     /** 누적합 기반으로 퍼센트 계산: round( sum(postponed) / (sum(postponed)+sum(done)) * 100 ) */
     private static int computePercentFromSummaries(List<PostponedRatioSummary> list) {
-        if (list == null || list.isEmpty()) return 0;
+        if (list == null || list.isEmpty()) {
+            log.warn("[PostponeRatioYearResponse] computePercentFromSummaries: empty list");
+            return 0;
+        }
 
         long sumPostponed = 0;
         long sumDone = 0;
@@ -87,12 +119,12 @@ public class PostponeRatioYearResponse {
     @AllArgsConstructor
     @Builder
     public static class MonthlyPoint {
-        private MonthKey monthKey;
+        private int month;
         private int postponedPercent;
 
-        public static MonthlyPoint of(MonthKey key, int postponedPercent) {
+        public static MonthlyPoint of(int month, int postponedPercent) {
             return MonthlyPoint.builder()
-                    .monthKey(key)
+                    .month(month)
                     .postponedPercent(postponedPercent)
                     .build();
         }

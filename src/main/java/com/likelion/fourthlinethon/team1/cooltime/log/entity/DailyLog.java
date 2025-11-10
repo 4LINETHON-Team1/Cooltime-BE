@@ -13,7 +13,15 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "daily_logs")
+@Table(
+    name = "daily_logs",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_date", columnNames = {"user_id", "date"})
+    },
+    indexes = {
+        @Index(name = "idx_user_postponed", columnList = "user_id, isPostponed")
+    }
+)
 public class DailyLog extends BaseTimeEntity {
 
     @Id
