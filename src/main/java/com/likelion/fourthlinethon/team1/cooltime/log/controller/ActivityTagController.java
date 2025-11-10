@@ -35,13 +35,13 @@ public class ActivityTagController {
         return ResponseEntity.ok(BaseResponse.success("활동이 추가되었습니다.", response));
     }
 
-    @Operation(summary = "활동 삭제", description = "사용자가 직접 추가한 활동 항목을 비활성화 처리합니다.")
+    @Operation(summary = "활동 삭제", description = "활동명을 기준으로 비활성화 처리합니다.")
     @DeleteMapping
     public ResponseEntity<BaseResponse<List<ActivityTagResponse>>> deleteActivity(
-            @RequestBody ActivityDeleteRequest request) {
+            @Valid @RequestBody ActivityDeleteRequest request) {
 
         User user = SecurityUtil.getCurrentUser();
-        List<ActivityTagResponse> response = activityTagService.deleteActivity(user, request.getActivityId());
+        List<ActivityTagResponse> response = activityTagService.deleteActivityByName(user, request.getName());
 
         return ResponseEntity.ok(BaseResponse.success("활동이 비활성화되었습니다.", response));
     }

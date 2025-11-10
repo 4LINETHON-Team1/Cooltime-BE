@@ -65,22 +65,20 @@ public class ActivityTagService {
      * 활동 삭제 (default 불가, isActive=false 후 전체 활성 활동 반환)
      */
     @Transactional
-    public List<ActivityTagResponse> deleteActivity(User user, Long activityId) {
-        ActivityTag activity = activityTagRepository.findById(activityId)
+    public List<ActivityTagResponse> deleteActivityByName(User user, String name) {
+        ActivityTag activity = activityTagRepository.findByUserAndName(user, name)
                 .orElseThrow(() -> new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND));
 
-        if (!activity.getUser().getId().equals(user.getId())) {
-            throw new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND);
-        }
-
         if (activity.getIsDefault()) {
-            throw new CustomException(DailyLogErrorCode.ACTIVITY_OR_REASON_ALREADY_EXISTS);
+            throw new CustomException(DailyLogErrorCode.CANNOT_DELETE_DEFAULT_TAG);
+        }
+        if (!activity.getIsActive()) {
+            throw new CustomException(DailyLogErrorCode.ALREADY_INACTIVE_TAG);
         }
 
         activity.setIsActive(false);
         activityTagRepository.save(activity);
 
-        // ✅ 삭제 후에도 활성화된 전체 리스트 반환
         return getActiveTags(user);
     }
 

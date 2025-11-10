@@ -1,16 +1,14 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
-@Schema(description = "활동 삭제 요청 DTO")
+@Schema(title = "활동 삭제 요청 DTO", description = "삭제할 활동의 이름을 담는 요청입니다.")
 public class ActivityDeleteRequest {
 
-    @NotNull(message = "삭제할 활동 ID는 필수입니다.")
-    @Schema(description = "활동 ID", example = "2")
-    private Long activityId;
+    @Schema(description = "삭제할 활동 이름", example = "등교하기")
+    @NotBlank(message = "삭제할 활동 이름은 필수입니다.")
+    private String name;
 }
