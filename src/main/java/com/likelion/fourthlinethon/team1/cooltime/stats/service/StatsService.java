@@ -10,6 +10,7 @@ import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.stream.IntStream;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StatsService {
     private final DailyLogRepository dailyLogRepository;
     private final LogActivityRepository logActivityRepository;
