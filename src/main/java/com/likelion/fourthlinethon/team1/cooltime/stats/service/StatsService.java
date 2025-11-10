@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -93,19 +94,9 @@ public class StatsService {
         int totalCount = (int)dailyLogRepository.countByUser(user);
 
         // 3) Rank 매기면서 DTO 변환
-        List<CategoryRankItem> items = new ArrayList<>(projections.size());
-        for (int i = 0; i < projections.size(); i++) {
-            ActivityStatsProjection p = projections.get(i);
-            items.add(
-                    CategoryRankItem.builder()
-                            .categoryId(p.getActivityId())
-                            .categoryName(p.getActivityName())
-                            .rank(i + 1) // 1부터 시작
-                            .totalCount(totalCount)
-                            .postponedCount(Math.toIntExact(p.getCnt()))
-                            .build()
-            );
-        }
+        List<CategoryRankItem> items = IntStream.range(0, projections.size())
+                .mapToObj(i ->  CategoryRankItem.of(projections.get(i), i + 1, totalCount))
+                .toList();
 
         return new CategoryStatsAllResponse(items);
     }
