@@ -87,6 +87,7 @@ public class PostponeRatioYearResponse {
                 .requestedPeriod(requestedPeriod)
                 .effectivePeriod(effectivePeriod)
                 .status(EffectivePeriodStatus.OUT_OF_RANGE.name())
+                .change(PostponedRateChangeResponse.noData())
                 .months(emptyMonths)
                 .build();
     }
