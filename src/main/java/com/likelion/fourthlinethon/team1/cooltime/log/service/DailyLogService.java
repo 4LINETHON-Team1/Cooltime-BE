@@ -57,15 +57,10 @@ public class DailyLogService {
 
         DailyLog savedLog = dailyLogRepository.save(log);
 
-        // 활동 매핑
-        for (Long activityId : request.getActivityIds()) {
-            ActivityTag activity = activityTagRepository.findById(activityId)
+        // ✅ 활동 매핑 (이름 기반)
+        for (String activityName : request.getActivities()) {
+            ActivityTag activity = activityTagRepository.findByUserAndName(user, activityName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND));
-
-            if (!activity.getUser().getId().equals(user.getId())) {
-                throw new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND);
-            }
-
             logActivityRepository.save(
                     LogActivity.builder()
                             .log(savedLog)
@@ -74,15 +69,10 @@ public class DailyLogService {
             );
         }
 
-        // 이유 매핑
-        for (Long reasonId : request.getReasonIds()) {
-            ReasonTag reason = reasonTagRepository.findById(reasonId)
+        // ✅ 이유 매핑 (이름 기반)
+        for (String reasonName : request.getReasons()) {
+            ReasonTag reason = reasonTagRepository.findByUserAndName(user, reasonName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.REASON_NOT_FOUND));
-
-            if (!reason.getUser().getId().equals(user.getId())) {
-                throw new CustomException(DailyLogErrorCode.REASON_NOT_FOUND);
-            }
-
             logReasonRepository.save(
                     LogReason.builder()
                             .log(savedLog)
@@ -90,9 +80,6 @@ public class DailyLogService {
                             .build()
             );
         }
-        
-        // 연속 기록 업데이트 및 배지 부여
-        userStreakService.updateStreakOnRecord(user.getId());
 
         return DailyLogResponse.fromEntity(savedLog);
     }
@@ -107,22 +94,14 @@ public class DailyLogService {
         DailyLog existingLog = dailyLogRepository.findByUserAndDate(user, today)
                 .orElseThrow(() -> new CustomException(DailyLogErrorCode.LOG_NOT_FOUND));
 
-        // 기존 연결 삭제
         logActivityRepository.deleteAllByLog(existingLog);
         logReasonRepository.deleteAllByLog(existingLog);
 
-        // 값 수정
         existingLog.update(request.getIsPostponed(), request.getMyType());
 
-        // 활동 다시 매핑
-        for (Long activityId : request.getActivityIds()) {
-            ActivityTag activity = activityTagRepository.findById(activityId)
+        for (String activityName : request.getActivities()) {
+            ActivityTag activity = activityTagRepository.findByUserAndName(user, activityName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND));
-
-            if (!activity.getUser().getId().equals(user.getId())) {
-                throw new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND);
-            }
-
             logActivityRepository.save(
                     LogActivity.builder()
                             .log(existingLog)
@@ -131,15 +110,9 @@ public class DailyLogService {
             );
         }
 
-        // 이유 다시 매핑
-        for (Long reasonId : request.getReasonIds()) {
-            ReasonTag reason = reasonTagRepository.findById(reasonId)
+        for (String reasonName : request.getReasons()) {
+            ReasonTag reason = reasonTagRepository.findByUserAndName(user, reasonName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.REASON_NOT_FOUND));
-
-            if (!reason.getUser().getId().equals(user.getId())) {
-                throw new CustomException(DailyLogErrorCode.REASON_NOT_FOUND);
-            }
-
             logReasonRepository.save(
                     LogReason.builder()
                             .log(existingLog)

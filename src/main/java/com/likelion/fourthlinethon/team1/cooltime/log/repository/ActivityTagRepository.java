@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ActivityTagRepository extends JpaRepository<ActivityTag, Long> {
     boolean existsByUserAndName(User user, String name);
-    Optional<ActivityTag> findByIdAndUser(Long id, User user);
+    Optional<ActivityTag> findByUserAndName(User user, String name);
 }
