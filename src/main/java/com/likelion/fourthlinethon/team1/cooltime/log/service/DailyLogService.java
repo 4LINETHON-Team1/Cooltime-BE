@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -94,12 +95,22 @@ public class DailyLogService {
         DailyLog existingLog = dailyLogRepository.findByUserAndDate(user, today)
                 .orElseThrow(() -> new CustomException(DailyLogErrorCode.LOG_NOT_FOUND));
 
+        // 1. 기존 관계 삭제 + 즉시 DB 반영
         logActivityRepository.deleteAllByLog(existingLog);
         logReasonRepository.deleteAllByLog(existingLog);
+        logActivityRepository.flush();
+        logReasonRepository.flush();
 
+        // 2. 오늘만 수정 가능하도록 체크
+        if (!existingLog.getDate().isEqual(today)) {
+            throw new CustomException(DailyLogErrorCode.INVALID_DATE);
+        }
+
+        // 3. 로그 상태 업데이트
         existingLog.update(request.getIsPostponed(), request.getMyType());
 
-        for (String activityName : request.getActivities()) {
+        // 4. 중복 없는 활동 추가
+        for (String activityName : new HashSet<>(request.getActivities())) {
             ActivityTag activity = activityTagRepository.findByUserAndName(user, activityName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND));
             logActivityRepository.save(
@@ -110,7 +121,8 @@ public class DailyLogService {
             );
         }
 
-        for (String reasonName : request.getReasons()) {
+        // 5. 중복 없는 이유 추가
+        for (String reasonName : new HashSet<>(request.getReasons())) {
             ReasonTag reason = reasonTagRepository.findByUserAndName(user, reasonName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.REASON_NOT_FOUND));
             logReasonRepository.save(
@@ -124,6 +136,7 @@ public class DailyLogService {
         dailyLogRepository.save(existingLog);
         return DailyLogResponse.fromEntity(existingLog);
     }
+
 
     // 미룸 기록 조회
     @Transactional(readOnly = true)
