@@ -107,6 +107,12 @@ public class WeekPeriod implements Period {
     public int weekOfMonthWF()      { return start.get(WF.weekOfMonth()); }
     public LocalDate endExclusive() { return end.plusDays(1); } // 쿼리를 < endExclusive 로 쓰고 싶을 때
 
+    /** 이 주가 현재 주(오늘이 포함된 주)인지 확인 */
+    public boolean isCurrentWeek() {
+        LocalDate today = LocalDate.now();
+        return !today.isBefore(start) && !today.isAfter(end);
+    }
+
     @Override public Period prev() { return new WeekPeriod(start.minusWeeks(1)); }
     @Override public Period next() { return new WeekPeriod(start.plusWeeks(1)); }
 

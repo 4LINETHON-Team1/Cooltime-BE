@@ -52,7 +52,7 @@ public class StatsService {
 
     private boolean isAiReportAvailable(User user) {
         // AI 리포트 사용 가능 여부 로직 구현 (예: 프리미엄 사용자 여부 등)
-        return false; // 기본값으로 false 반환
+        return true; // 기본값으로 false 반환
     }
 
     public TotalRecordSummaryResponse getTotalRecordSummary(User user) {
