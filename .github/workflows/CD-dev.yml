@@ -2,7 +2,7 @@ name: CD-dev.yml
 on:
   push:
     branches:
-      - dev
+      - develop
 
 jobs:
   deploy:
