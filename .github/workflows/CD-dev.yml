@@ -54,6 +54,6 @@ jobs:
           script: |
             cd /home/ubuntu/cooltime
             sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
-            sudo docker-compose down --rmi all
+            sudo docker compose down --rmi all
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/cooltime
-            sudo docker-compose up -d
+            sudo docker compose up -d
