@@ -1,6 +1,10 @@
 package com.likelion.fourthlinethon.team1.cooltime.global.config;
 
+import com.likelion.fourthlinethon.team1.cooltime.global.props.CorsProps;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -9,19 +13,21 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+
 //CorsConfig 설정
 @Configuration
+@AllArgsConstructor
+@EnableConfigurationProperties(CorsProps.class)
 public class CorsConfig {
 
-    @Value("${cors.allowed-origins}")
-    private List<String> allowedOrigins;
+    private final CorsProps props;
 
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 환경 변수에 정의된 출처만 허용
-        configuration.setAllowedOriginPatterns(allowedOrigins);
+        configuration.setAllowedOriginPatterns(props.allowedOrigins());
         // 리스트에 작성한 HTTP 메소드 요청만 허용
         configuration.setAllowedMethods(
                 Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
