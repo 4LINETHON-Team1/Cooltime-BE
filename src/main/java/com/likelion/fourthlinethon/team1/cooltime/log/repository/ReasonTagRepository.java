@@ -11,4 +11,6 @@ public interface ReasonTagRepository extends JpaRepository<ReasonTag, Long> {
 
     List<ReasonTag> findByUserAndIsDefaultTrue(User user);
     Optional<ReasonTag> findByUserAndName(User user, String name);
+
+    List<ReasonTag> findByUserAndIsActiveOrderByIsDefaultDescUpdatedAtAsc(User user, Boolean isActive);
 }
