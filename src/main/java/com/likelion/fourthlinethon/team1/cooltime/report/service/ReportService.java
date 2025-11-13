@@ -49,11 +49,11 @@ public class ReportService {
 
         // 2) 회원가입일과 저번주 계산
         LocalDate signup = user.getCreatedAt().toLocalDate();
-        WeekPeriod lastWeek = WeekPeriod.fromDate(LocalDate.now()).prev();
+        WeekPeriod lastWeek = (WeekPeriod) WeekPeriod.of(LocalDate.now()).prev();
         LocalDate lastWeekEnd = lastWeek.getEnd();
 
         // 3) 회원가입일부터 저번주까지 순회하면서 3회 이상 기록한 주가 있는지 확인
-        WeekPeriod currentWeek = WeekPeriod.fromDate(signup);
+        WeekPeriod currentWeek = WeekPeriod.of(signup);
 
         while (!currentWeek.getStart().isAfter(lastWeekEnd)) {
             LocalDate weekStart = currentWeek.getStart();
@@ -90,7 +90,7 @@ public class ReportService {
             return AiWeeklyReportResponse.outOfRange(
                     String.valueOf(period.year()),
                     String.valueOf(period.month()),
-                    String.valueOf(period.weekOfMonthAuto())
+                    String.valueOf(period.weekOfMonthAuto()));
         }
 
         // 3) AI 레포트가 존재하면 반환, 없으면 새로 생성
