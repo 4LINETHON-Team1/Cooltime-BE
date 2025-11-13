@@ -22,7 +22,7 @@ import java.time.LocalDate;
 
 @Tag(name = "AI-Report", description = "AI 보고서 관련 API")
 @RestController
-@RequestMapping("/api/ai-report")
+@RequestMapping("/api/ai-reports")
 @RequiredArgsConstructor
 public class ReportController {
     private final ReportService reportService;
