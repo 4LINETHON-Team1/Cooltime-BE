@@ -1,8 +1,9 @@
-name: CD-dev.yml
+name: CD
 on:
   push:
     branches:
       - develop
+      - main
 
 jobs:
   deploy:
@@ -30,6 +31,7 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+        
       - name: 빌드하기(테스트 제외)
         run: ./gradlew clean build -x test
 
@@ -41,7 +43,7 @@ jobs:
 
       - name: Docker build and push
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/cooltime .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/cooltime:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/cooltime:latest
 
       - name: SSH로 EC2에 접속하기
@@ -53,7 +55,5 @@ jobs:
           script_stop: true
           script: |
             cd /home/ubuntu/cooltime
-            sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
-            sudo docker compose down --rmi all
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/cooltime
-            sudo docker compose up -d
+            sudo docker compose down
+            sudo docker compose up -d --build
