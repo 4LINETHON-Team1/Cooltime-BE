@@ -1,26 +1,81 @@
 package com.likelion.fourthlinethon.team1.cooltime.report.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.likelion.fourthlinethon.team1.cooltime.global.common.time.period.ClampedPeriod;
 import com.likelion.fourthlinethon.team1.cooltime.global.common.time.period.PeriodGuard;
 import com.likelion.fourthlinethon.team1.cooltime.global.common.time.period.WeekPeriod;
+import com.likelion.fourthlinethon.team1.cooltime.log.entity.DailyLog;
+import com.likelion.fourthlinethon.team1.cooltime.log.entity.LogActivity;
+import com.likelion.fourthlinethon.team1.cooltime.log.entity.LogReason;
+import com.likelion.fourthlinethon.team1.cooltime.log.repository.DailyLogRepository;
+import com.likelion.fourthlinethon.team1.cooltime.log.repository.LogActivityRepository;
+import com.likelion.fourthlinethon.team1.cooltime.log.repository.LogReasonRepository;
+import com.likelion.fourthlinethon.team1.cooltime.report.dto.request.PatternAnalysisRequest;
 import com.likelion.fourthlinethon.team1.cooltime.report.dto.response.AiWeeklyReportResponse;
+import com.likelion.fourthlinethon.team1.cooltime.report.dto.response.PatternAnalysisResponse;
 import com.likelion.fourthlinethon.team1.cooltime.report.entity.AiWeeklyReport;
 import com.likelion.fourthlinethon.team1.cooltime.report.repository.AiWeeklyReportRepository;
-import com.likelion.fourthlinethon.team1.cooltime.stats.dto.response.PeriodResponse;
-import com.likelion.fourthlinethon.team1.cooltime.stats.dto.response.PostponeRatioWeekResponse;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ReportService {
     private final AiWeeklyReportRepository aiWeeklyReportRepository;
+    private final DailyLogRepository dailyLogRepository;
+    private final LogActivityRepository logActivityRepository;
+    private final LogReasonRepository logReasonRepository;
+    private final OpenAiService openAiService;
+    private final ObjectMapper objectMapper;
 
+
+
+    public boolean isAiReportAvailable(User user) {
+        // 1) AI 레포트가 이미 존재하는지 확인
+        if (aiWeeklyReportRepository.existsByUser(user)) {
+            return true;
+        }
+
+        // 2) 회원가입일과 저번주 계산
+        LocalDate signup = user.getCreatedAt().toLocalDate();
+        WeekPeriod lastWeek = WeekPeriod.fromDate(LocalDate.now()).prev();
+        LocalDate lastWeekEnd = lastWeek.getEnd();
+
+        // 3) 회원가입일부터 저번주까지 순회하면서 3회 이상 기록한 주가 있는지 확인
+        WeekPeriod currentWeek = WeekPeriod.fromDate(signup);
+
+        while (!currentWeek.getStart().isAfter(lastWeekEnd)) {
+            LocalDate weekStart = currentWeek.getStart();
+            LocalDate weekEnd = currentWeek.getEnd();
+
+            // 해당 주의 기록 개수 조회
+            List<DailyLog> logs = dailyLogRepository.findAllByUserAndDateBetween(user, weekStart, weekEnd);
+
+            // 3회 이상 기록한 주가 있으면 true 반환
+            if (logs.size() >= 3) {
+                return true;
+            }
+
+            // 다음 주로 이동
+            currentWeek = (WeekPeriod) currentWeek.next();
+        }
+
+        // 조건을 만족하는 주가 없으면 false 반환
+        return false;
+    }
+
+    @Transactional
     public AiWeeklyReportResponse getAiWeeklyReport(User user, WeekPeriod period) {
         // 1) 회원 가입일 및 오늘 날짜 조회
         LocalDate signup = user.getCreatedAt().toLocalDate();
@@ -36,36 +91,139 @@ public class ReportService {
                     String.valueOf(period.year()),
                     String.valueOf(period.month()),
                     String.valueOf(period.weekOfMonthAuto())
-            );
         }
 
-
-        // 임시 반환값
-        return AiWeeklyReportResponse.of(AiWeeklyReport.createReport(user, period.getStart(),
-                """
-                        지난 일주일 동안, ‘공부’와 ‘정리정돈’ 카테고리에서 미룸이 가장 자주 나타났어요. 특히 ‘완벽하게 시작해야 한다’는 생각이 강할수록 실행이 늦어지는 경향이 보여요.
-                        일정이 쌓이기보단, 준비 과정에서 스스로 피로를 느끼는 패턴이에요. AI가 분석한 결과, 현재 당신은 ‘완벽주의형 성향’에 가깝습니다. 집중력이 높고 책임감이 강하지만, 그만큼 결과에 대한 압박도 함께 커요.
-                        """,
-                """
-                        완벽하게 하려는 마음이 강할수록 시작 자체가 어려워질 수 있어요. 이번 주에는 ‘결과보다 시도’를 기록하는 방식으로 루틴을 바꿔보세요. 예를 들어, 공부 계획을 세우기 전에 ‘10분만 하기’ 버튼을 눌러 기록하는 식이에요. 또한 미룸을 줄이는 것보다, ‘어떤 상황에서 미루는지’를 인식하는 것이 더 중요합니다. 쿨타임은 이 패턴을 바탕으로 다음 주 피드백을 조금 더 정교하게 조정할 거예요. 당신의 미룸은 실패가 아니라, 집중력과 책임감이 강한 사람에게 나타나는 회복 신호예요. 이번 주엔 ‘완벽한 하루’보다 ‘하루를 시작한 나’에게 초점을 맞춰보세요. 🌿
-                        """,
-                """
-                        지난주보다 ‘공부’ 카테고리의 미룸 횟수는 줄었지만, ‘정리정돈’과 ‘운동’에서 새롭게 미룸이 나타났어요. 특히 주 초반엔 실행이 빠르지만, 주 후반으로 갈수록 피로감이나 집중 저하로 인해 루틴이 흐트러지는 경향이 보여요.
-                        또한 지난주에는 ‘계획 수정’이 많았다면 이번 주에는 ‘시작 지연’이 주된 형태로 바뀌었어요. 즉, 계획을 세우는 시간은 확보되었지만 실제 행동으로 옮기는 데 더 많은 에너지가 필요한 상황이에요.
-                        AI가 분석한 결과, 이번 주의 미룸은 ‘동기 저하형’보다는 ‘에너지 관리형’ 패턴에 가까워요. 집중력이 높을 때 몰입하지만, 회복 시간을 충분히 확보하지 못하면 다음 루틴으로 넘어가기 어려워지는 경향이 있습니다.
-                        """));
-
-        // 3)
-        // AI 레포트가 존재하면 AiWeeklyReportResponse로 반환
-        // 없으면 새로 생성하여 반환
-//        return aiWeeklyReportRepository
-//                .findByUserAndWeekStart(user, period.getStart())
-//                .map(AiWeeklyReportResponse::of)
-//                .orElseGet(()-> AiWeeklyReportResponse.of(createAiWeeklyReport(user)));
+        // 3) AI 레포트가 존재하면 반환, 없으면 새로 생성
+        return aiWeeklyReportRepository
+                .findByUserAndWeekStart(user, period.getStart())
+                .map(AiWeeklyReportResponse::of)
+                .orElseGet(() -> AiWeeklyReportResponse.of(createAiWeeklyReport(user, period)));
     }
 
-    private AiWeeklyReport createAiWeeklyReport(User user){
-        return new AiWeeklyReport();
+    private AiWeeklyReport createAiWeeklyReport(User user, WeekPeriod weekPeriod) {
+        LocalDate weekStart = weekPeriod.getStart();
+        LocalDate weekEnd = weekPeriod.getEnd();
+
+        // 1) 현재 주 데이터 조회
+        List<DailyLog> currentWeekLogs = dailyLogRepository.findAllByUserAndDateBetween(user, weekStart, weekEnd);
+
+        // 2) 기록이 2일 이하이면 레포트 본문 null로 저장
+        if (currentWeekLogs.size() <= 2) {
+            log.info("[서비스] 이번 주 기록이 2일 이하입니다. userId={}, weekStart={}, logCount={}",
+                    user.getId(), weekStart, currentWeekLogs.size());
+            AiWeeklyReport report = AiWeeklyReport.createReport(user, weekStart, null, null, null);
+            return aiWeeklyReportRepository.save(report);
+        }
+
+        // 3) 현재 주 데이터 구조 생성
+        PatternAnalysisRequest.WeekData currentWeekData = toWeekData(currentWeekLogs);
+
+        // 4) 지난 주 데이터 조회
+        WeekPeriod lastWeekPeriod = (WeekPeriod) weekPeriod.prev();
+        LocalDate lastWeekStart = lastWeekPeriod.getStart();
+        LocalDate lastWeekEnd = lastWeekPeriod.getEnd();
+        List<DailyLog> lastWeekLogs = dailyLogRepository.findAllByUserAndDateBetween(user, lastWeekStart, lastWeekEnd);
+
+        // 5) 지난 주 데이터 구조 생성 (2일 이하이면 null)
+        PatternAnalysisRequest.WeekData lastWeekData = null;
+        if (lastWeekLogs.size() > 2) {
+            lastWeekData = toWeekData(lastWeekLogs);
+        }
+
+        // 6) PatternAnalysisRequest 생성
+        PatternAnalysisRequest request = PatternAnalysisRequest.builder()
+                .patternType(user.getMytype())
+                .currentWeek(currentWeekData)
+                .lastWeek(lastWeekData)
+                .build();
+
+        // 7) JSON으로 변환
+        String requestJson;
+        try {
+            requestJson = objectMapper.writeValueAsString(request);
+            log.info("[서비스] OpenAI 요청 JSON: {}", requestJson);
+        } catch (JsonProcessingException e) {
+            log.error("[서비스] JSON 변환 실패", e);
+            throw new RuntimeException("AI 분석 요청 생성 중 오류가 발생했습니다.", e);
+        }
+
+        // 8) OpenAI API 호출
+        String responseJson = openAiService.analyzePostponePattern(requestJson);
+
+        // 9) 응답 파싱
+        PatternAnalysisResponse response;
+        try {
+            response = objectMapper.readValue(responseJson, PatternAnalysisResponse.class);
+            log.info("[서비스] OpenAI 응답 파싱 완료");
+        } catch (JsonProcessingException e) {
+            log.error("[서비스] OpenAI 응답 파싱 실패: {}", responseJson, e);
+            throw new RuntimeException("AI 분석 응답 처리 중 오류가 발생했습니다.", e);
+        }
+
+        // 10) AiWeeklyReport 생성 및 저장
+        AiWeeklyReport report = AiWeeklyReport.createReport(
+                user,
+                weekStart,
+                response.getPatternAnalysis(),
+                response.getSolution(),
+                response.getWeeklyComparison()
+        );
+
+        return aiWeeklyReportRepository.save(report);
     }
 
+    /**
+     * DailyLog 리스트를 기반으로 WeekData 생성
+     */
+    private PatternAnalysisRequest.WeekData toWeekData(List<DailyLog> logs) {
+        int totalLogCount = logs.size();
+
+        // 미룸 기록만 필터링
+        List<DailyLog> postponedLogs = logs.stream()
+                .filter(DailyLog::isPostponed)
+                .toList();
+
+        int postponedLogCount = postponedLogs.size();
+
+        // 카테고리 통계 생성
+        Map<String, Integer> categoryCountMap = new HashMap<>();
+        for (DailyLog log : postponedLogs) {
+            List<LogActivity> activities = logActivityRepository.findByLog(log);
+            for (LogActivity activity : activities) {
+                String categoryName = activity.getActivity().getName();
+                categoryCountMap.put(categoryName, categoryCountMap.getOrDefault(categoryName, 0) + 1);
+            }
+        }
+
+        List<PatternAnalysisRequest.CategoryStat> categoryStats = categoryCountMap.entrySet().stream()
+                .map(entry -> PatternAnalysisRequest.CategoryStat.builder()
+                        .category(entry.getKey())
+                        .count(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 이유 통계 생성
+        Map<String, Integer> reasonCountMap = new HashMap<>();
+        for (DailyLog log : postponedLogs) {
+            List<LogReason> reasons = logReasonRepository.findByLog(log);
+            for (LogReason reason : reasons) {
+                String reasonName = reason.getReason().getName();
+                reasonCountMap.put(reasonName, reasonCountMap.getOrDefault(reasonName, 0) + 1);
+            }
+        }
+
+        List<PatternAnalysisRequest.ReasonStat> reasonStats = reasonCountMap.entrySet().stream()
+                .map(entry -> PatternAnalysisRequest.ReasonStat.builder()
+                        .reason(entry.getKey())
+                        .count(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        return PatternAnalysisRequest.WeekData.builder()
+                .totalLogCount(totalLogCount)
+                .postponedLogCount(postponedLogCount)
+                .categoryStats(categoryStats)
+                .reasonStats(reasonStats)
+                .build();
+    }
 }

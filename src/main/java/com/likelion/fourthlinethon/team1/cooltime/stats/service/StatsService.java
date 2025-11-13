@@ -3,6 +3,7 @@ package com.likelion.fourthlinethon.team1.cooltime.stats.service;
 import com.likelion.fourthlinethon.team1.cooltime.global.common.time.period.*;
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.DailyLogRepository;
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.LogActivityRepository;
+import com.likelion.fourthlinethon.team1.cooltime.report.service.ReportService;
 import com.likelion.fourthlinethon.team1.cooltime.stats.dto.response.*;
 import com.likelion.fourthlinethon.team1.cooltime.stats.projection.ActivityStatsProjection;
 import com.likelion.fourthlinethon.team1.cooltime.stats.projection.PostponeRatioCounts;
@@ -24,6 +25,7 @@ import java.util.stream.IntStream;
 public class StatsService {
     private final DailyLogRepository dailyLogRepository;
     private final LogActivityRepository logActivityRepository;
+    private final ReportService reportService;
 
     public DashboardOverviewResponse getDashboardOverview(User user) {
         log.info("[서비스] 대시보드 개요 조회 시도 - userId: {}", user.getId());
@@ -39,7 +41,7 @@ public class StatsService {
         int postponedPercent = postponeRatioTotal.getTotal().getPostponedPercent();
 
         // 4) AI 리포트 사용 가능 여부 조회 (임시)
-        boolean aiReportAvailable = isAiReportAvailable(user);
+        boolean aiReportAvailable = reportService.isAiReportAvailable(user);
 
         // 5) 응답 생성 및 반환
         return DashboardOverviewResponse.from(
@@ -50,10 +52,6 @@ public class StatsService {
         );
     }
 
-    private boolean isAiReportAvailable(User user) {
-        // AI 리포트 사용 가능 여부 로직 구현 (예: 프리미엄 사용자 여부 등)
-        return true; // 기본값으로 false 반환
-    }
 
     public TotalRecordSummaryResponse getTotalRecordSummary(User user) {
         log.info("[서비스] 총 미룸 기록 일수 조회 시도 - userId: {}", user.getId());
