@@ -27,3 +27,6 @@ jobs:
 
       - name: 빌드하기(테스트 제외)
         run: ./gradlew clean build -x test
+        
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582
