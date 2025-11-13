@@ -82,6 +82,8 @@ public class DailyLogService {
             );
         }
 
+        // 배지 및 연속 기록 처리
+        userStreakService.updateStreakOnRecord(user.getId());
         return DailyLogResponse.fromEntity(savedLog);
     }
 
