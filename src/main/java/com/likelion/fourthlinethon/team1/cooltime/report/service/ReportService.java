@@ -39,6 +39,42 @@ public class ReportService {
     private final OpenAiService openAiService;
     private final ObjectMapper objectMapper;
 
+
+
+    public boolean isAiReportAvailable(User user) {
+        // 1) AI 레포트가 이미 존재하는지 확인
+        if (aiWeeklyReportRepository.existsByUser(user)) {
+            return true;
+        }
+
+        // 2) 회원가입일과 저번주 계산
+        LocalDate signup = user.getCreatedAt().toLocalDate();
+        WeekPeriod lastWeek = WeekPeriod.fromDate(LocalDate.now()).prev();
+        LocalDate lastWeekEnd = lastWeek.getEnd();
+
+        // 3) 회원가입일부터 저번주까지 순회하면서 3회 이상 기록한 주가 있는지 확인
+        WeekPeriod currentWeek = WeekPeriod.fromDate(signup);
+
+        while (!currentWeek.getStart().isAfter(lastWeekEnd)) {
+            LocalDate weekStart = currentWeek.getStart();
+            LocalDate weekEnd = currentWeek.getEnd();
+
+            // 해당 주의 기록 개수 조회
+            List<DailyLog> logs = dailyLogRepository.findAllByUserAndDateBetween(user, weekStart, weekEnd);
+
+            // 3회 이상 기록한 주가 있으면 true 반환
+            if (logs.size() >= 3) {
+                return true;
+            }
+
+            // 다음 주로 이동
+            currentWeek = (WeekPeriod) currentWeek.next();
+        }
+
+        // 조건을 만족하는 주가 없으면 false 반환
+        return false;
+    }
+
     @Transactional
     public AiWeeklyReportResponse getAiWeeklyReport(User user, WeekPeriod period) {
         // 1) 회원 가입일 및 오늘 날짜 조회
