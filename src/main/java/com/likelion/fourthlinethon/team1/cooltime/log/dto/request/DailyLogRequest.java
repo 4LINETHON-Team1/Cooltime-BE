@@ -1,4 +1,4 @@
-package com.likelion.fourthlinethon.team1.cooltime.log.dto;
+package com.likelion.fourthlinethon.team1.cooltime.log.dto.request;
 
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.MyType;
 import io.swagger.v3.oas.annotations.media.Schema;

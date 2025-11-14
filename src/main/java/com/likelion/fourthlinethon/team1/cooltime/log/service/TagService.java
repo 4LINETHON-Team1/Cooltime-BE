@@ -1,8 +1,8 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.service;
 
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ActivityTagResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ReasonTagResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.TagResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.ActivityTagResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.ReasonTagResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.TagResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.ActivityTagRepository;
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.ReasonTagRepository;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;

@@ -1,8 +1,8 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.service;
 
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ActivityTagRequest;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ActivityTagResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.request.ActivityTagRequest;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.ActivityTagResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.ActivityTag;
 import com.likelion.fourthlinethon.team1.cooltime.log.exception.DailyLogErrorCode;
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.ActivityTagRepository;
@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +25,7 @@ public class ActivityTagService {
      */
     @Transactional
     public List<ActivityTagResponse> createActivity(User user, ActivityTagRequest request) {
-        Optional<ActivityTag> existingTag = activityTagRepository
-                .findAll()
-                .stream()
-                .filter(t -> t.getUser().getId().equals(user.getId()) && t.getName().equals(request.getName()))
-                .findFirst();
+        Optional<ActivityTag> existingTag = activityTagRepository.findByUserAndName(user, request.getName());
 
         if (existingTag.isPresent()) {
             ActivityTag tag = existingTag.get();
@@ -80,9 +75,9 @@ public class ActivityTagService {
      * 유저의 활성화된 전체 활동 목록 조회
      */
     private List<ActivityTagResponse> getActiveTags(User user) {
-        return activityTagRepository.findAll().stream()
-                .filter(t -> t.getUser().getId().equals(user.getId()) && t.getIsActive())
+        return activityTagRepository.findByUserAndIsActiveOrderByIsDefaultDescUpdatedAtAsc(user, true)
+                .stream()
                 .map(ActivityTagResponse::fromEntity)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

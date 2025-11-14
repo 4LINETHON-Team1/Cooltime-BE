@@ -8,9 +8,7 @@ import java.util.Optional;
 
 public interface ReasonTagRepository extends JpaRepository<ReasonTag, Long> {
     boolean existsByUserAndName(User user, String name);
-
     List<ReasonTag> findByUserAndIsDefaultTrue(User user);
     Optional<ReasonTag> findByUserAndName(User user, String name);
-
     List<ReasonTag> findByUserAndIsActiveOrderByIsDefaultDescUpdatedAtAsc(User user, Boolean isActive);
 }

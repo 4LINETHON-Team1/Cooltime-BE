@@ -2,11 +2,11 @@ package com.likelion.fourthlinethon.team1.cooltime.log.service;
 
 import com.likelion.fourthlinethon.team1.cooltime.badge.service.UserStreakService;
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogCalendarResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogDetailResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogRequest;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.MonthlyLogSummaryResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogCalendarResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogDetailResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.request.DailyLogRequest;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.MonthlyLogSummaryResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.ActivityTag;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.DailyLog;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.LogActivity;

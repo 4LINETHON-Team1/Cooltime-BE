@@ -2,10 +2,10 @@ package com.likelion.fourthlinethon.team1.cooltime.log.controller;
 
 import com.likelion.fourthlinethon.team1.cooltime.global.response.BaseResponse;
 import com.likelion.fourthlinethon.team1.cooltime.global.security.SecurityUtil;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogDetailResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogRequest;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.MonthlyLogSummaryResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogDetailResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.request.DailyLogRequest;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.MonthlyLogSummaryResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.service.DailyLogService;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;

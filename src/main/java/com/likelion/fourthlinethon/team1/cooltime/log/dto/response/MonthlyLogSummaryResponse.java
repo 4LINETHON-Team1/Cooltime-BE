@@ -1,4 +1,4 @@
-package com.likelion.fourthlinethon.team1.cooltime.log.dto;
+package com.likelion.fourthlinethon.team1.cooltime.log.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

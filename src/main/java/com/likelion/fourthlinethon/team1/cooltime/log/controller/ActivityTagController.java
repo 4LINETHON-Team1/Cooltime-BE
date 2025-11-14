@@ -1,9 +1,9 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.controller;
 
 import com.likelion.fourthlinethon.team1.cooltime.global.response.BaseResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ActivityDeleteRequest;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ActivityTagRequest;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ActivityTagResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.request.ActivityDeleteRequest;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.request.ActivityTagRequest;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.ActivityTagResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.service.ActivityTagService;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;
 import com.likelion.fourthlinethon.team1.cooltime.global.security.SecurityUtil;

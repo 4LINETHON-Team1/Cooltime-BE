@@ -1,8 +1,8 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.service;
 
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ReasonTagRequest;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.ReasonTagResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.request.ReasonTagRequest;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.ReasonTagResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.ReasonTag;
 import com.likelion.fourthlinethon.team1.cooltime.log.exception.DailyLogErrorCode;
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.ReasonTagRepository;
@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +25,7 @@ public class ReasonTagService {
      */
     @Transactional
     public List<ReasonTagResponse> createReason(User user, ReasonTagRequest request) {
-        Optional<ReasonTag> existingTag = reasonTagRepository
-                .findAll()
-                .stream()
-                .filter(r -> r.getUser().getId().equals(user.getId()) && r.getName().equals(request.getName()))
-                .findFirst();
+        Optional<ReasonTag> existingTag = reasonTagRepository.findByUserAndName(user, request.getName());
 
         if (existingTag.isPresent()) {
             ReasonTag tag = existingTag.get();
@@ -80,9 +75,9 @@ public class ReasonTagService {
      * 유저의 활성화된 전체 이유 목록 조회
      */
     private List<ReasonTagResponse> getActiveReasons(User user) {
-        return reasonTagRepository.findAll().stream()
-                .filter(r -> r.getUser().getId().equals(user.getId()) && r.getIsActive())
+        return reasonTagRepository.findByUserAndIsActiveOrderByIsDefaultDescUpdatedAtAsc(user, true)
+                .stream()
                 .map(ReasonTagResponse::fromEntity)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

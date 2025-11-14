@@ -1,18 +1,18 @@
-package com.likelion.fourthlinethon.team1.cooltime.log.dto;
+package com.likelion.fourthlinethon.team1.cooltime.log.dto.response;
 
-import com.likelion.fourthlinethon.team1.cooltime.log.entity.ReasonTag;
+import com.likelion.fourthlinethon.team1.cooltime.log.entity.ActivityTag;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class ReasonTagResponse {
+public class ActivityTagResponse {
 
-    @Schema(description = "이유 ID")
+    @Schema(description = "활동 ID")
     private Long id;
 
-    @Schema(description = "이유명")
+    @Schema(description = "활동명")
     private String name;
 
     @Schema(description = "활성화 여부")
@@ -21,8 +21,8 @@ public class ReasonTagResponse {
     @Schema(description = "기본값 여부")
     private Boolean isDefault;
 
-    public static ReasonTagResponse fromEntity(ReasonTag tag) {
-        return ReasonTagResponse.builder()
+    public static ActivityTagResponse fromEntity(ActivityTag tag) {
+        return ActivityTagResponse.builder()
                 .id(tag.getId())
                 .name(tag.getName())
                 .isActive(tag.getIsActive())
