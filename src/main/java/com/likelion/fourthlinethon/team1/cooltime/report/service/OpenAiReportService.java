@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class OpenAiService {
+public class OpenAiReportService {
     private final RestClient openAiRestClient;
 
     private static final String SYSTEM_PROMPT = """

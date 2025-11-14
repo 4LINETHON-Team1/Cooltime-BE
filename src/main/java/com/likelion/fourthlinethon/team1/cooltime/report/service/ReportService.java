@@ -36,7 +36,7 @@ public class ReportService {
     private final DailyLogRepository dailyLogRepository;
     private final LogActivityRepository logActivityRepository;
     private final LogReasonRepository logReasonRepository;
-    private final OpenAiService openAiService;
+    private final OpenAiReportService openAiReportService;
     private final ObjectMapper objectMapper;
 
 
@@ -148,7 +148,7 @@ public class ReportService {
         }
 
         // 8) OpenAI API 호출
-        String responseJson = openAiService.analyzePostponePattern(requestJson);
+        String responseJson = openAiReportService.analyzePostponePattern(requestJson);
 
         // 9) 응답 파싱
         PatternAnalysisResponse response;
