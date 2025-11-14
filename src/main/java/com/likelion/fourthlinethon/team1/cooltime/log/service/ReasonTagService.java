@@ -26,7 +26,6 @@ public class ReasonTagService {
      */
     @Transactional
     public List<ReasonTagResponse> createReason(User user, ReasonTagRequest request) {
-        // 1️⃣ 기존 동일 이름의 이유 존재 여부 확인
         Optional<ReasonTag> existingTag = reasonTagRepository
                 .findAll()
                 .stream()
@@ -35,20 +34,15 @@ public class ReasonTagService {
 
         if (existingTag.isPresent()) {
             ReasonTag tag = existingTag.get();
-
-            // 2️⃣ 이미 활성 상태면 예외 발생
             if (tag.getIsActive()) {
                 throw new CustomException(DailyLogErrorCode.ACTIVITY_OR_REASON_ALREADY_EXISTS);
             }
-
-            // 3️⃣ 비활성화 상태라면 재활성화
             tag.setIsActive(true);
             reasonTagRepository.save(tag);
 
             return getActiveReasons(user);
         }
 
-        // 4️⃣ 존재하지 않으면 새로 생성
         ReasonTag tag = ReasonTag.builder()
                 .user(user)
                 .name(request.getName())
@@ -83,7 +77,7 @@ public class ReasonTagService {
     }
 
     /**
-     * ✅ 유저의 활성화된 전체 이유 목록 조회
+     * 유저의 활성화된 전체 이유 목록 조회
      */
     private List<ReasonTagResponse> getActiveReasons(User user) {
         return reasonTagRepository.findAll().stream()

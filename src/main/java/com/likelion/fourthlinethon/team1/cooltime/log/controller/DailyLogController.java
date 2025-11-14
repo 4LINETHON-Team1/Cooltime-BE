@@ -24,7 +24,7 @@ public class DailyLogController {
 
     private final DailyLogService dailyLogService;
 
-    /** ✏️ 미룸 기록 작성 */
+    /** 미룸 기록 작성 */
     @Operation(summary = "미룸 기록하기", description = "오늘 날짜의 미룸 기록을 작성합니다.")
     @PostMapping("/log")
     public ResponseEntity<BaseResponse<DailyLogResponse>> createLog(@RequestBody DailyLogRequest request) {
@@ -33,7 +33,7 @@ public class DailyLogController {
         return ResponseEntity.ok(BaseResponse.success("미룸 기록이 저장되었습니다.", response));
     }
 
-    /** 🧩 미룸 기록 수정 */
+    /** 미룸 기록 수정 */
     @Operation(summary = "미룸 기록 수정하기", description = "오늘 날짜의 미룸 기록을 수정합니다.")
     @PutMapping("/log")
     public ResponseEntity<BaseResponse<DailyLogResponse>> updateDailyLog(@RequestBody DailyLogRequest request) {
@@ -42,7 +42,7 @@ public class DailyLogController {
         return ResponseEntity.ok(BaseResponse.success("미룸 기록이 수정되었습니다.", response));
     }
 
-    /** 🔍 미룸 기록 조회 */
+    /** 미룸 기록 조회 */
     @Operation(summary = "미룸 기록 조회", description = "특정 날짜의 미룸 기록을 조회합니다.")
     @GetMapping("/log")
     public ResponseEntity<BaseResponse<DailyLogDetailResponse>> getDailyLog(@RequestParam String date) {
@@ -52,7 +52,7 @@ public class DailyLogController {
         return ResponseEntity.ok(BaseResponse.success("미룸 기록 조회 성공", response));
     }
 
-    /** 📅 캘린더 조회 */
+    /** 캘린더 조회 */
     @Operation(summary = "캘린더 조회", description = "특정 월의 미룸 기록 요약을 조회합니다.")
     @GetMapping("/calendar")
     public ResponseEntity<BaseResponse<MonthlyLogSummaryResponse>> getMonthlyLogs(

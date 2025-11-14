@@ -1,11 +1,13 @@
 package com.likelion.fourthlinethon.team1.cooltime.user.service;
 
+import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.ActivityTag;
 import com.likelion.fourthlinethon.team1.cooltime.log.repository.ActivityTagRepository;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.SignUpRequest;
 import com.likelion.fourthlinethon.team1.cooltime.user.dto.UserResponse;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.Role;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;
+import com.likelion.fourthlinethon.team1.cooltime.user.exception.UserErrorCode;
 import com.likelion.fourthlinethon.team1.cooltime.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +31,10 @@ public class UserService {
         log.info("[회원가입 시도] username = {}", request.getUsername());
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
+            throw new CustomException(UserErrorCode.USERNAME_ALREADY_EXISTS);
         }
-
         if (userRepository.existsByNickname(request.getNickname())) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            throw new CustomException(UserErrorCode.USERNAME_ALREADY_EXISTS);
         }
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -49,7 +50,6 @@ public class UserService {
         User savedUser = userRepository.save(user);
         log.info("[회원가입 성공] id={}, username={}", savedUser.getId(), savedUser.getUsername());
 
-        // ✅ 기본 활동 자동 생성
         List<String> defaultActivities = List.of("공부", "운동", "독서");
         defaultActivities.forEach(activity ->
                 activityTagRepository.save(
@@ -71,12 +71,24 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public boolean checkUsername(String username) {
-        return userRepository.existsByUsername(username);
+    public void validateUsername(String username) {
+        if (!username.matches("^[A-Za-z\\d]{4,12}$")) {
+            throw new CustomException(UserErrorCode.INVALID_USERNAME_FORMAT);
+        }
+        if (userRepository.existsByUsername(username)) {
+            throw new CustomException(UserErrorCode.USERNAME_ALREADY_EXISTS);
+        }
     }
 
     @Transactional(readOnly = true)
-    public boolean checkNickname(String nickname) {
-        return userRepository.existsByNickname(nickname);
+    public void validateNickname(String nickname) {
+        if (!nickname.matches("^[가-힣]{1,12}$")) {
+            throw new CustomException(UserErrorCode.INVALID_NICKNAME_FORMAT);
+        }
+
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CustomException(UserErrorCode.USERNAME_ALREADY_EXISTS);
+        }
     }
+
 }

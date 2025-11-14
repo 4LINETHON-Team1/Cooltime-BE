@@ -26,7 +26,6 @@ public class ActivityTagService {
      */
     @Transactional
     public List<ActivityTagResponse> createActivity(User user, ActivityTagRequest request) {
-        // 1️⃣ 기존 동일 이름의 활동 존재 여부 확인
         Optional<ActivityTag> existingTag = activityTagRepository
                 .findAll()
                 .stream()
@@ -35,20 +34,15 @@ public class ActivityTagService {
 
         if (existingTag.isPresent()) {
             ActivityTag tag = existingTag.get();
-
-            // 2️⃣ 이미 활성 상태면 예외 발생
             if (tag.getIsActive()) {
                 throw new CustomException(DailyLogErrorCode.ACTIVITY_OR_REASON_ALREADY_EXISTS);
             }
-
-            // 3️⃣ 비활성화 상태라면 재활성화
             tag.setIsActive(true);
             activityTagRepository.save(tag);
 
             return getActiveTags(user);
         }
 
-        // 4️⃣ 존재하지 않으면 새로 생성
         ActivityTag tag = ActivityTag.builder()
                 .user(user)
                 .name(request.getName())
@@ -62,7 +56,7 @@ public class ActivityTagService {
     }
 
     /**
-     * 활동 삭제 (default 불가, isActive=false 후 전체 활성 활동 반환)
+     * 활동 삭제
      */
     @Transactional
     public List<ActivityTagResponse> deleteActivityByName(User user, String name) {
@@ -83,7 +77,7 @@ public class ActivityTagService {
     }
 
     /**
-     * ✅ 유저의 활성화된 전체 활동 목록 조회
+     * 유저의 활성화된 전체 활동 목록 조회
      */
     private List<ActivityTagResponse> getActiveTags(User user) {
         return activityTagRepository.findAll().stream()

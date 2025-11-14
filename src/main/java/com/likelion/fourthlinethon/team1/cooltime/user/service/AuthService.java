@@ -24,7 +24,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
 
     /**
-     * ✅ 로그인
+     * 로그인
      */
     @Transactional
     public LoginResponse signIn(LoginRequest request) {
@@ -49,7 +49,7 @@ public class AuthService {
     }
 
     /**
-     * ✅ 토큰 재발급
+     * 토큰 재발급
      */
     @Transactional
     public LoginResponse refreshAccessToken(String refreshToken) {
@@ -76,7 +76,7 @@ public class AuthService {
     }
 
     /**
-     * ✅ 로그아웃
+     * 로그아웃
      */
     @Transactional
     public void logout(String username) {

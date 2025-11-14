@@ -15,7 +15,7 @@ public enum UserErrorCode implements BaseErrorCode {
   INVALID_SIGNATURE("AUTH_4005", "서명 검증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
   ILLEGAL_ARGUMENT("AUTH_4006", "잘못된 JWT 인자입니다.", HttpStatus.BAD_REQUEST),
 
-  USERNAME_ALREADY_EXISTS("USER_4001", "이미 존재하는 사용자 아이디입니다.", HttpStatus.BAD_REQUEST),
+  USERNAME_ALREADY_EXISTS("USER_4001", "이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST),
   PASSWORD_MISMATCH("USER_4002", "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
   USER_NOT_FOUND("USER_4041", "존재하지 않는 사용자입니다.", HttpStatus.NOT_FOUND),
 
