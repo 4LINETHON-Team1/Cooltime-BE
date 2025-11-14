@@ -1,7 +1,7 @@
 package com.likelion.fourthlinethon.team1.cooltime.log.controller;
 
 import com.likelion.fourthlinethon.team1.cooltime.global.response.BaseResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.TagResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.TagResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.service.TagService;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.User;
 import com.likelion.fourthlinethon.team1.cooltime.global.security.SecurityUtil;

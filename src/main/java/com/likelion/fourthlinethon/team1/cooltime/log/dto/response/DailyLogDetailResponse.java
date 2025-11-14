@@ -1,4 +1,4 @@
-package com.likelion.fourthlinethon.team1.cooltime.log.dto;
+package com.likelion.fourthlinethon.team1.cooltime.log.dto.response;
 
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.DailyLog;
 import com.likelion.fourthlinethon.team1.cooltime.user.entity.MyType;

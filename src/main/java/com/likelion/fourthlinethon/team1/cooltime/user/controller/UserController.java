@@ -33,7 +33,7 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * 🧩 회원가입 API
+     * 회원가입 API
      */
     @Operation(
             summary = "회원가입 API",
@@ -54,47 +54,21 @@ public class UserController {
     // 아이디 중복 확인 API
     @Operation(summary = "아이디 중복 확인 API", description = "아이디 형식 및 중복 여부를 확인합니다.")
     @GetMapping("/check-username")
-    public ResponseEntity<BaseResponse<String>> checkUsername(
-            @Parameter(description = "확인할 아이디", example = "user1234")
-            @RequestParam String username) {
-
-        // 정규식 검증 (4~12자 영문+숫자)
-        if (!username.matches("^[A-Za-z\\d]{4,12}$")) {
-            return ResponseEntity.badRequest()
-                    .body(BaseResponse.error("아이디는 4~12자의 영문과 숫자 조합이어야 합니다."));
-        }
-
-        boolean exists = userService.checkUsername(username);
-        if (exists) {
-            return ResponseEntity.ok(BaseResponse.error(409, "이미 사용 중인 아이디입니다."));
-        }
-
+    public ResponseEntity<BaseResponse<String>> checkUsername(@RequestParam String username) {
+        userService.validateUsername(username);
         return ResponseEntity.ok(BaseResponse.success("사용 가능한 아이디입니다.", null));
     }
 
     // 닉네임 중복 확인 API
     @Operation(summary = "닉네임 중복 확인 API", description = "닉네임 형식 및 중복 여부를 확인합니다.")
     @GetMapping("/check-nickname")
-    public ResponseEntity<BaseResponse<String>> checkNickname(
-            @Parameter(description = "확인할 닉네임", example = "민정")
-            @RequestParam String nickname) {
-
-        // 정규식 검증 (한글만, 1~12자)
-        if (!nickname.matches("^[가-힣]{1,12}$")) {
-            return ResponseEntity.badRequest()
-                    .body(BaseResponse.error("닉네임은 한글만 사용 가능하며, 1~12자 이내여야 합니다."));
-        }
-
-        boolean exists = userService.checkNickname(nickname);
-        if (exists) {
-            return ResponseEntity.ok(BaseResponse.error(409, "이미 사용 중인 닉네임입니다."));
-        }
-
+    public ResponseEntity<BaseResponse<String>> checkNickname(@RequestParam String nickname) {
+        userService.validateNickname(nickname);
         return ResponseEntity.ok(BaseResponse.success("사용 가능한 닉네임입니다.", null));
     }
 
     /**
-     * 🧩 비밀번호 유효성 검사 API
+     * 비밀번호 유효성 검사 API
      */
     @Operation(summary = "비밀번호 유효성 검사", description = "비밀번호가 8~20자, 영문·숫자·특수문자 2종 이상 조합인지 확인합니다.")
     @PostMapping("/check-password")
@@ -109,7 +83,7 @@ public class UserController {
     }
 
     /**
-     * ✅ 비밀번호 2종 이상 조합(영문·숫자·특수문자) 검증 메서드
+     * 비밀번호 2종 이상 조합(영문·숫자·특수문자) 검증 메서드
      */
     private boolean isValidPassword(String password) {
         if (password == null) return false;
@@ -124,7 +98,7 @@ public class UserController {
         if (hasDigit) count++;
         if (hasSpecial) count++;
 
-        return count >= 2; // ✅ 최소 2종 이상 조합 허용
+        return count >= 2;
     }
 
     @Operation(summary = "내 정보 조회", description = "JWT 인증 후 자신의 정보를 반환합니다.")

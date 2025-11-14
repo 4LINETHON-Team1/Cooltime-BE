@@ -2,11 +2,11 @@ package com.likelion.fourthlinethon.team1.cooltime.log.service;
 
 import com.likelion.fourthlinethon.team1.cooltime.badge.service.UserStreakService;
 import com.likelion.fourthlinethon.team1.cooltime.global.exception.CustomException;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogCalendarResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogDetailResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogRequest;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.DailyLogResponse;
-import com.likelion.fourthlinethon.team1.cooltime.log.dto.MonthlyLogSummaryResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogCalendarResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogDetailResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.request.DailyLogRequest;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.DailyLogResponse;
+import com.likelion.fourthlinethon.team1.cooltime.log.dto.response.MonthlyLogSummaryResponse;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.ActivityTag;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.DailyLog;
 import com.likelion.fourthlinethon.team1.cooltime.log.entity.LogActivity;
@@ -39,7 +39,7 @@ public class DailyLogService {
     private final UserStreakService userStreakService;
 
     /**
-     * ✏️ 미룸 기록 작성 (POST /api/logs)
+     * 미룸 기록 작성 (POST /api/logs)
      */
     @Transactional
     public DailyLogResponse createDailyLog(User user, DailyLogRequest request) {
@@ -58,7 +58,6 @@ public class DailyLogService {
 
         DailyLog savedLog = dailyLogRepository.save(log);
 
-        // ✅ 활동 매핑 (이름 기반)
         for (String activityName : request.getActivities()) {
             ActivityTag activity = activityTagRepository.findByUserAndName(user, activityName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND));
@@ -70,7 +69,6 @@ public class DailyLogService {
             );
         }
 
-        // ✅ 이유 매핑 (이름 기반)
         for (String reasonName : request.getReasons()) {
             ReasonTag reason = reasonTagRepository.findByUserAndName(user, reasonName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.REASON_NOT_FOUND));
@@ -82,13 +80,12 @@ public class DailyLogService {
             );
         }
 
-        // 배지 및 연속 기록 처리
         userStreakService.updateStreakOnRecord(user.getId());
         return DailyLogResponse.fromEntity(savedLog);
     }
 
     /**
-     * 🧩 미룸 기록 수정 (PUT /api/logs)
+     * 미룸 기록 수정 (PUT /api/logs)
      */
     @Transactional
     public DailyLogResponse updateDailyLog(User user, DailyLogRequest request) {
@@ -97,21 +94,17 @@ public class DailyLogService {
         DailyLog existingLog = dailyLogRepository.findByUserAndDate(user, today)
                 .orElseThrow(() -> new CustomException(DailyLogErrorCode.LOG_NOT_FOUND));
 
-        // 1. 기존 관계 삭제 + 즉시 DB 반영
         logActivityRepository.deleteAllByLog(existingLog);
         logReasonRepository.deleteAllByLog(existingLog);
         logActivityRepository.flush();
         logReasonRepository.flush();
 
-        // 2. 오늘만 수정 가능하도록 체크
         if (!existingLog.getDate().isEqual(today)) {
             throw new CustomException(DailyLogErrorCode.INVALID_DATE);
         }
 
-        // 3. 로그 상태 업데이트
         existingLog.update(request.getIsPostponed(), request.getMyType());
 
-        // 4. 중복 없는 활동 추가
         for (String activityName : new HashSet<>(request.getActivities())) {
             ActivityTag activity = activityTagRepository.findByUserAndName(user, activityName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.ACTIVITY_NOT_FOUND));
@@ -123,7 +116,6 @@ public class DailyLogService {
             );
         }
 
-        // 5. 중복 없는 이유 추가
         for (String reasonName : new HashSet<>(request.getReasons())) {
             ReasonTag reason = reasonTagRepository.findByUserAndName(user, reasonName)
                     .orElseThrow(() -> new CustomException(DailyLogErrorCode.REASON_NOT_FOUND));

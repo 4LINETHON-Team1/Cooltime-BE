@@ -35,11 +35,10 @@ public class AuthController {
         return ResponseEntity.ok(BaseResponse.success("AccessToken 재발급 성공", response));
     }
 
-    // 로그아웃 API (JWT 인증 필터를 통과한 사용자만 가능)
+    // 로그아웃 API
     @Operation(summary = "로그아웃 API", description = "AccessToken 인증 후 RefreshToken 무효화")
     @PostMapping("/sign-out")
     public ResponseEntity<BaseResponse<Void>> logout(Authentication authentication) {
-        // JWT 필터를 통과하면 authentication.getName()에 username이 들어 있음
         String username = authentication.getName();
         authService.logout(username);
         return ResponseEntity.ok(BaseResponse.success("로그아웃 성공", null));
