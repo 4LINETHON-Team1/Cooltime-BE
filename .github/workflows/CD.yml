@@ -55,5 +55,11 @@ jobs:
           script_stop: true
           script: |
             cd /home/ubuntu/cooltime
+
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" > .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+            
             sudo docker compose down
+            sudo docker compose pull spring
             sudo docker compose up -d --build
